@@ -1,0 +1,173 @@
+//
+//  Utility.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/2/28.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "Utility.h"
+#import <CommonCrypto/CommonDigest.h>
+#import "YZLoginVC.h"
+#import "UIViewController+Utils.h"
+
+
+@implementation Utility
+// 判断登录
++ (BOOL)islogin {
+    return  yz_user ? true : false;
+}
++ (void)goLogin {
+    YZLoginVC *loginVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"loginVC"];
+    UIViewController *vc = [UIViewController currentViewController];
+    UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:loginVC];
+    [vc presentViewController:nav animated:YES completion:nil];
+}
+
++ (UIColor *)colorWithRGB:(NSInteger)rgb alpha:(CGFloat)alpha {
+    return [Utility colorWithRGBA:(rgb << 8) + alpha * 255.f];
+}
+
++ (UIColor *)colorWithRGBA:(NSInteger)rgba {
+    CGFloat r = ((rgba & 0xff000000) >> 24) / 255.f;
+    CGFloat g = ((rgba & 0xff0000) >> 16) / 255.f;
+    CGFloat b = ((rgba & 0xff00) >> 8) / 255.f;
+    CGFloat a = (rgba & 0xff) / 255.f;
+    return [UIColor colorWithRed:r green:g blue:b alpha:a];
+}
+
+// MD5加密
++ (NSString *)md5:(NSString *)str {
+    const char *cStr = [str UTF8String];
+    unsigned char result[16];
+    CC_MD5(cStr, (CC_LONG)strlen(cStr), result); // This is the md5 call
+    return [NSString stringWithFormat:@"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+            result[0], result[1], result[2], result[3],
+            result[4], result[5], result[6], result[7],
+            result[8], result[9], result[10], result[11],
+            result[12], result[13], result[14], result[15]
+            ];
+}
++ (CGSize)calculatelblSizeForFont:(CGFloat)font scope:(CGSize)size text:(NSString *)text{
+    CGSize timeSize = [text boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:font]} context:nil].size;
+    return timeSize;
+}
+
++ (void)MJRefreshHeaderGif:(UIScrollView *)tableView headerWithRefreshingBlock:(void(^)())block{
+    
+    MJRefreshGifHeader *gifHeader = [MJRefreshGifHeader headerWithRefreshingBlock:^{
+        block();
+    }];
+    gifHeader.lastUpdatedTimeLabel.hidden = NO;
+    gifHeader.stateLabel.hidden = NO;
+    NSArray *headerImgs = @[
+                            [UIImage imageNamed:@"loading_header1"],
+                            [UIImage imageNamed:@"loading_header2"],
+                            [UIImage imageNamed:@"loading_header3"],
+                            [UIImage imageNamed:@"loading_header4"],
+                            [UIImage imageNamed:@"loading_header5"],
+                            [UIImage imageNamed:@"loading_header6"],
+                            [UIImage imageNamed:@"loading_header7"],
+                            [UIImage imageNamed:@"loading_header8"],
+                            [UIImage imageNamed:@"loading_header9"],
+                            [UIImage imageNamed:@"loading_header10"]];
+    [gifHeader setImages:headerImgs duration:2 forState:MJRefreshStateIdle];
+    [gifHeader setImages:headerImgs duration:2 forState:MJRefreshStatePulling];
+    [gifHeader setImages:headerImgs duration:2 forState:MJRefreshStateRefreshing];
+    
+    tableView.mj_header = gifHeader;
+}
++ (void)tableViewFooterHiddenWith:(UITableView *)tableView currentPage:(NSInteger)currentPage totalPage:(NSInteger)totalPage {
+    if (currentPage >= totalPage) {
+        //                    [weakSelf.tableView.mj_footer  endRefreshingWithNoMoreData];
+        tableView.mj_footer.hidden = YES;
+    }else {
+        tableView.mj_footer.hidden = NO;
+    }
+}
+
++ (void)setLabelLineSpace:(UILabel *)lbl content:(NSString *)content lineSpace:(CGFloat)lineSpace {
+    NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:content];
+    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+    [paragraphStyle setLineSpacing:lineSpace];
+    [str addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, str.length)];
+    lbl.attributedText = str;
+}
++ (void)updateUserInfoWithVC:(UIViewController *)vc toastText:(NSString *)text finish:(void(^)())finishBlack{
+    NSDictionary *dic = @{@"nickname"   : yz_user.nickname,
+                          @"email"      : yz_user.email[@"value"]?:@"",
+                          @"gender"     : yz_user.detail[@"gender"]?@([yz_user.detail[@"gender"] integerValue]):@0,
+                          @"address"    : yz_user.detail[@"address"]?:@"",
+                          @"vocation"   : yz_user.detail[@"vocation"]?:@"",
+                          @"description": yz_user.detail[@"description"]?:@"",
+                          @"age"        : @(0)};
+    [YZHttpApiManager apiUserEditWithParameters:dic completionHandler:^(id response, NSError *error) {
+        if (finishBlack) {
+            finishBlack();
+        }
+        [YZToastView showToastWithText:text];
+        if (vc) {
+            [vc.navigationController popViewControllerAnimated:YES];
+        }
+    }];
+}
+// 邮箱
++ (BOOL) validateEmail:(NSString *)email
+{
+    NSString *emailRegex = @"[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}";
+    NSPredicate *emailTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", emailRegex];
+    return [emailTest evaluateWithObject:email];
+}
+//手机号码验证
++ (BOOL) validateMobile:(NSString *)mobile
+{
+    //手机号以13， 15，18开头，八个 \d 数字字符
+    NSString *phoneRegex = @"^((13[0-9])|(15[^4,\\D])|(18[0,0-9]))\\d{8}$";
+    NSPredicate *phoneTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@",phoneRegex];
+    return [phoneTest evaluateWithObject:mobile];
+}
+//身份证号
++ (BOOL) validateIdentityCard: (NSString *)identityCard
+{
+    BOOL flag;
+    if (identityCard.length <= 0) {
+        flag = NO;
+        return flag;
+    }
+    NSString *regex2 = @"^(\\d{14}|\\d{17})(\\d|[xX])$";
+    NSPredicate *identityCardPredicate = [NSPredicate predicateWithFormat:@"SELF MATCHES %@",regex2];
+    return [identityCardPredicate evaluateWithObject:identityCard];
+}
+
++ (void)tabBarWithIndex:(NSInteger)index {
+    [(UITabBarController *)APPDELEGATE.window.rootViewController setSelectedIndex:index];
+}
++ (NSString *)createUUID
+{
+    NSString *identifierForVendor = [[UIDevice currentDevice].identifierForVendor UUIDString];
+    return identifierForVendor;
+}
++ (NSString *)currentTime{
+    NSDate *date = [NSDate date];
+    NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
+    formatter.dateFormat = @"yyyyMMddHHmmss";
+    NSString *time = [formatter stringFromDate:date];
+    return time;
+}
++ (NSString *)shuffledAlphabet
+{
+    const NSUInteger length = 'Z' - 'A' + 1;
+    unichar alphabet[length];
+    alphabet[0] = 'A';
+    
+    for ( NSUInteger i = 1; i < length; i++ )
+    {
+        NSUInteger j = arc4random_uniform((uint32_t)i + 1);
+        alphabet[i] = alphabet[j];
+        alphabet[j] = 'A' + i;
+    }
+    return [NSString stringWithCharacters:alphabet length:length];
+}
+
+
+@end

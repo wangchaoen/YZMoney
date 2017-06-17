@@ -1,0 +1,73 @@
+//
+//  YZEmailController.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/10.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZEmailController.h"
+
+@interface YZEmailController ()
+@property (nonatomic, strong) UITextField *textField;
+@end
+
+@implementation YZEmailController
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self.textField resignFirstResponder];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [self.textField becomeFirstResponder];
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    self.view.backgroundColor = YZ_GRAY_COLOR;
+    self.navigationItem.title = @"邮件";
+    
+    UIView *bgView = [[UIView alloc] initWithFrame:CGRectMake(0, 64 + 20, S_W, 45)];
+    bgView.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:bgView];
+    
+    [self.view addSubview:self.textField];
+    
+    self.textField.text = yz_user.email;
+    
+    UIBarButtonItem *sumbitBut = [[UIBarButtonItem alloc]initWithTitle:@"保存" style:UIBarButtonItemStylePlain target:self action:@selector(sumbitButAction)];
+    
+    [sumbitBut setTitleTextAttributes:@{NSFontAttributeName:[UIFont systemFontOfSize:16], NSForegroundColorAttributeName:[UIColor whiteColor]} forState:UIControlStateNormal];
+    
+    self.navigationItem.rightBarButtonItem = sumbitBut;
+    
+}
+- (UITextField *)textField{
+    if (!_textField) {
+        
+        _textField = [[UITextField alloc] initWithFrame:CGRectMake(10, 64 + 20, S_W - 20, 45)];
+        _textField.font = [UIFont systemFontOfSize:14];
+        _textField.clearButtonMode = UITextFieldViewModeWhileEditing;
+        //        _textField.delegate = self;
+    }
+    return _textField;
+    
+}
+
+- (void)sumbitButAction {
+    [self.textField resignFirstResponder];
+    if (_textField.text.length <= 0 || yz_user.email) {
+//        [YZToastView showToastWithText:@"请输入你的邮箱"];
+        [self.navigationController popViewControllerAnimated:YES];
+        return;
+    }
+    if (_textField.text.length > 100) {
+        [YZToastView showToastWithText:@"您的邮箱长度过长"];
+        return;
+    }
+    yz_user.email= _textField.text;
+    [Utility updateUserInfoWithVC:self toastText:@"修改邮件成功" finish:nil];
+
+}
+
+@end

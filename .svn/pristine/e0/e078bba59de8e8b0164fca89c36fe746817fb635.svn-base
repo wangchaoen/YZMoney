@@ -1,0 +1,116 @@
+    //
+//  YZMineTypeController.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/18.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZMineTypeController.h"
+#import "YZOrderCell.h"
+#import "YZMineAppointDetailVC.h"
+#import "YZMineAppointListVC.h"
+#import "YZAppSearchController.h"
+
+@interface YZMineTypeController ()<UITableViewDelegate, UITableViewDataSource>
+@property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) NSMutableArray *dataArray;
+@property (nonatomic, assign) NSInteger currentPage;
+@end
+
+@implementation YZMineTypeController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.currentPage = 1;
+    self.view.backgroundColor = [UIColor whiteColor];
+    UIBarButtonItem *rightBut = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(searchAction)];
+    self.navigationItem.rightBarButtonItem = rightBut;
+    self.dataArray = [NSMutableArray array];
+    [self.view addSubview:self.tableView];
+    UIButton *but = [UIButton buttonWithType:UIButtonTypeCustom];
+    [but setTitle:@"查看所有订单" forState:UIControlStateNormal];
+    [but setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    but.frame = CGRectMake(0, S_H - 45, S_W, 45);
+    but.backgroundColor = YZ_RED_COLOR;
+    [but addTarget:self action:@selector(showAllOrderAction) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:but];
+    [self request];
+    WEAK_SELF;
+    self.tableView.mj_footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
+        weakSelf.currentPage++;
+        [weakSelf request];
+    }];
+}
+- (void)request {
+    WEAK_SELF;
+    NSMutableDictionary *paramesDic = [NSMutableDictionary dictionaryWithDictionary:self.parameters];
+    [paramesDic setObject:@(self.currentPage) forKey:@"pageNum"];
+    [YZHttpApiManager apiMineAppointSearchWithParameters:paramesDic
+                                       completionHandler:^(id response,  NSError *error) {
+                                           [weakSelf.tableView.mj_header endRefreshing];
+                                           [weakSelf.tableView.mj_footer endRefreshing];
+                                        [YZViewManager viewManagerWithTextAndView:weakSelf.tableView data:[response valueForKeyPath:@"data.pageResult.result"] error:error withText:[NSString stringWithFormat:@"您暂无%@的订单", self.title] block:^{
+                                            if (weakSelf.currentPage == 1) {
+                                                [weakSelf.dataArray removeAllObjects];
+                                            }
+                                            for (NSDictionary *dic in [response valueForKeyPath:@"data.pageResult.result"]) {
+                                                [weakSelf.dataArray addObject:[[YZAppointModel alloc] initWithDict:dic]];
+                                            }
+                                            [weakSelf.tableView reloadData];
+                                            [Utility tableViewFooterHiddenWith:weakSelf.tableView currentPage:weakSelf.currentPage totalPage:[[response valueForKeyPath:@"data.pageResult.totalPage"] integerValue]];
+                                        }];
+                                       } finished:^{
+                                           [weakSelf.tableView.mj_header endRefreshing];
+                                           [weakSelf.tableView.mj_footer endRefreshing];
+                                       }];
+}
+- (UITableView *)tableView {
+    if (!_tableView) {
+        _tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, S_W, S_H - 45)];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        [_tableView registerClass:[YZOrderCell class] forCellReuseIdentifier:NSStringFromClass([YZOrderCell class])];
+        _tableView.tableFooterView = [UIView new];
+        _tableView.backgroundColor = YZ_GRAY_COLOR;
+    }
+    return _tableView;
+}
+#pragma mark - table view
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.dataArray.count;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 120;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    YZOrderCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([YZOrderCell class])];
+    YZAppointModel *appoint = self.dataArray[indexPath.row];
+    [cell sendWithYZAppModel:appoint];
+    return cell;
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    YZAppointModel *appoint = self.dataArray[indexPath.row];
+    YZMineAppointDetailVC *vc = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"apppoint_detail_vc"];
+    [vc setAppoint:appoint];
+    [self.navigationController pushViewController:vc animated:YES];
+}
+#pragma mark - action
+- (void)searchAction {
+    YZAppSearchController *vc = [[YZAppSearchController alloc]init];
+    [self.navigationController pushViewController:vc animated:YES];
+}
+- (void)showAllOrderAction {
+    
+    YZMineAppointListVC *vc  = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"YZMineAppointListVC"];
+    [self.navigationController pushViewController:vc animated:YES];
+    for (UIViewController *vc in self.navigationController.viewControllers) {
+        if ([vc isKindOfClass:[self class]]) {
+            NSMutableArray *arr = [self.navigationController.viewControllers mutableCopy];
+            [arr removeObject:vc];
+            self.navigationController.viewControllers = arr;
+        }
+    }
+
+}
+@end

@@ -1,0 +1,103 @@
+//
+//  YZEditorAddressVC.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/26.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZEditorAddressVC.h"
+#import <Contacts/Contacts.h>
+#import <ContactsUI/ContactsUI.h>
+#import <AddressBook/AddressBook.h>
+#import <AddressBookUI/AddressBookUI.h>
+
+@interface YZEditorAddressVC ()<CNContactPickerDelegate, ABPeoplePickerNavigationControllerDelegate>
+@property (nonatomic, strong) UITableView *tableView;
+@end
+
+@implementation YZEditorAddressVC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.navigationItem.title = @"新建";
+    [self.view setBackgroundColor:YZ_GRAY_COLOR];
+//    [self.view addSubview:self.tableView];
+}
+
+- (UITableView *)tableView {
+    if (!_tableView) {
+        _tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, S_W, S_H)];
+        _tableView.backgroundColor = YZ_GRAY_COLOR;
+        _tableView.tableFooterView = [UIView new];
+        _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    }
+    return _tableView;
+}
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+//    if ([[[UIDevice currentDevice] systemVersion] floatValue] <= 8) {
+        ABPeoplePickerNavigationController *peoplePickController = [[ABPeoplePickerNavigationController alloc] init];
+        peoplePickController.peoplePickerDelegate = self;
+        [self presentViewController:peoplePickController animated:YES completion:^{
+            
+        }];
+//        return;
+//    }
+    
+
+//    CNContactPickerViewController *contactVc = [[CNContactPickerViewController alloc] init];
+//    // 2.设置代理
+//    contactVc.delegate = self;
+//    // 3.弹出控制器
+//    [self presentViewController:contactVc animated:YES completion:nil];
+
+}
+// ④实现代理方法
+// 1.点击取消按钮调用的方法
+- (void)contactPickerDidCancel:(CNContactPickerViewController *)picker
+{
+    NSLog(@"取消选择联系人");
+}
+- (void)contactPicker:(CNContactPickerViewController *)picker didSelectContact:(CNContact *)contact{
+    NSLog(@"联系人的资料:%@",contact);
+    [self dismissViewControllerAnimated:YES completion:nil];
+    //显示联系人详细页面
+    CNContactViewController *contactVC = [CNContactViewController viewControllerForContact:contact];
+    [self presentViewController:contactVC animated:YES completion:nil];
+}
+
+// 2.当选中某一个联系人时会执行该方法
+//- (void)contactPicker:(CNContactPickerViewController *)picker didSelectContact:(CNContact *)contact
+//{
+//    // 1.获取联系人的姓名
+//    NSString *lastname = contact.familyName;
+//    NSString *firstname = contact.givenName;
+//    NSLog(@"%@ %@", lastname, firstname);
+//    
+//    // 2.获取联系人的电话号码(此处获取的是该联系人的第一个号码,也可以遍历所有的号码)
+//    NSArray *phoneNums = contact.phoneNumbers;
+//    CNLabeledValue *labeledValue = phoneNums[0];
+//    CNPhoneNumber *phoneNumer = labeledValue.value;
+//    NSString *phoneNumber = phoneNumer.stringValue;
+//    NSLog(@"%@", phoneNumber);
+//}
+
+
+#pragma mark - ABPeoplePickerNavigationControllerDelegate
+- (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person property:(ABPropertyID)property identifier:(ABMultiValueIdentifier)identifier {
+    
+    ABMultiValueRef phone = ABRecordCopyValue(person, kABPersonPhoneProperty);
+    CFStringRef na = ABRecordCopyCompositeName(person);
+
+    long index = ABMultiValueGetIndexForIdentifier(phone,identifier);
+    
+    NSString *phoneNO = (__bridge NSString *)ABMultiValueCopyValueAtIndex(phone, index);
+    NSString *name = (__bridge NSString *)(na);
+
+    phoneNO = [phoneNO stringByReplacingOccurrencesOfString:@"-" withString:@""];
+    NSLog(@"%@", name);
+    NSLog(@"%@", phoneNO);
+        
+        [peoplePicker dismissViewControllerAnimated:YES completion:nil];
+}
+@end

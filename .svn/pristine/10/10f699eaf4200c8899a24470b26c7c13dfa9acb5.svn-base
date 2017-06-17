@@ -1,0 +1,279 @@
+//
+//  YZLoginVC.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/5.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZLoginVC.h"
+#import <CommonCrypto/CommonDigest.h>
+#import "YZNewsDetailVC.h"
+
+
+
+
+
+@interface YZLoginVC () <UITableViewDataSource, UITableViewDelegate>
+
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+
+@property (nonatomic, strong) UITextField *tfMobileRegister;
+@property (nonatomic, strong) UITextField *tfImageCode;
+@property (nonatomic, strong) UITextField *tfCodeRegister;
+@property (nonatomic, strong) UITextField *tfPasswordRegister;
+@property (nonatomic, strong) UITextField *tfPasswordConfirm;
+@property (nonatomic, strong) UIButton *bCode;
+@property (nonatomic, strong) UIImage *imageCode;
+
+@property (nonatomic, strong) UITextField *tfMobileLogin;
+@property (nonatomic, strong) UITextField *tfPasswordLogin;
+
+@property (nonatomic, assign) NSInteger type;
+@property (nonatomic, assign) NSInteger count;
+@property (nonatomic, strong) NSTimer *timer;
+
+@end
+
+
+
+
+
+@implementation YZLoginVC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    
+    [YZHttpApiManager apiCheckCodeWithParameters:nil
+                               completionHandler:^(id response, NSError *error) {
+                                   _imageCode = response;
+                                   [self.tableView reloadData];
+                               }];
+}
+- (void)timerCountDown:(NSTimer *)sender {
+    if (_count) {
+        _count--;
+        [_bCode setTitle:[NSString stringWithFormat:@"%ld秒", (long)_count] forState:UIControlStateDisabled];
+    }
+    else {
+        _count = 60;
+        _bCode.enabled = YES;
+        [_timer invalidate];
+    }
+}
+
+- (void)gestureTap:(UITapGestureRecognizer *)tap {
+    [YZHttpApiManager apiCheckCodeWithParameters:nil
+                               completionHandler:^(id response, NSError *error) {
+                                   _imageCode = response;
+                                   [self.tableView reloadData];
+                               }];
+}
+
+
+#pragma mark - table view
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return !_type ? 3 : 6;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (!_type) {
+        return indexPath.row!=2 ? 55.0f : 120.0f;
+    }
+    else {
+        return indexPath.row!=5 ? 55.0f : 120.0f;
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [[UITableViewCell alloc] init];
+    
+    if (!_type) {
+        switch (indexPath.row) {
+            case 0: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_mobile"];
+                _tfMobileLogin = (UITextField *)[cell viewWithTag:1];
+                [(UIImageView *)[cell viewWithTag:2] setHidden:NO];
+                for (NSLayoutConstraint *constraint in cell.contentView.constraints) {
+                    if ([constraint.identifier isEqualToString:@"constraint_mobile"]) {
+                        constraint.constant = 5.0f;
+                    }
+                }
+                break;
+            }
+            case 1: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_password"];
+                _tfPasswordLogin = (UITextField *)[cell viewWithTag:1];
+                break;
+            }
+            case 2: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_buttonLogin"];
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    else {
+        switch (indexPath.row) {
+            case 0: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_mobile"];
+                _tfMobileRegister = (UITextField *)[cell viewWithTag:1];
+                [(UIImageView *)[cell viewWithTag:2] setHidden:YES];
+                for (NSLayoutConstraint *constraint in cell.contentView.constraints) {
+                    if ([constraint.identifier isEqualToString:@"constraint_mobile"]) {
+                        constraint.constant = -18.0f;
+                    }
+                }
+                break;
+            }
+            case 1: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_imageCode"];
+                _tfImageCode = (UITextField *)[cell viewWithTag:1];
+                [(UIImageView *)[cell viewWithTag:2] setImage:_imageCode];
+                [(UIImageView *)[cell viewWithTag:2] addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(gestureTap:)]];
+                break;
+            }
+            case 2: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_code"];
+                _tfCodeRegister = (UITextField *)[cell viewWithTag:1];
+                _bCode = (UIButton *)[cell viewWithTag:2];
+                break;
+            }
+            case 3: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_passwordRegister"];
+                _tfPasswordRegister = (UITextField *)[cell viewWithTag:1];
+                break;
+            }
+            case 4: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_passwordConfirm"];
+                _tfPasswordConfirm = (UITextField *)[cell viewWithTag:1];
+                break;
+            }
+            case 5: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_buttonRegister"];
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    
+    return cell;
+}
+
+
+#pragma mark - action
+
+- (IBAction)actionBack:(UIBarButtonItem *)sender {
+    [self.parentViewController dismissViewControllerAnimated:YES completion:nil];
+//    self.tfPasswordLogin.secureTextEntry = false;
+}
+
+- (IBAction)actionTap:(UITapGestureRecognizer *)sender {
+    [self.view endEditing:YES];
+}
+
+- (IBAction)actionSegChanged:(UISegmentedControl *)sender {
+    _type = sender.selectedSegmentIndex;
+    if (_type == 0) {
+        [MobClick event:@"login_switch"];
+    }else{
+        [MobClick event:@"register_switch"];
+    }
+    [_tableView reloadData];
+}
+
+- (IBAction)actionCode:(UIButton *)sender {
+    if (_tfMobileRegister.text.length && _tfImageCode.text.length) {
+        [YZHttpApiManager apiCodeWithParameters:@{@"mobile"   : _tfMobileRegister.text,
+                                                  @"checkCode": _tfImageCode.text}
+                              completionHandler:^(id response, NSError *error) {
+                                  if ([response[@"code"] integerValue] == 0) {
+                                      _bCode.enabled = NO;
+                                      _count = 60;
+                                      _timer = [NSTimer scheduledTimerWithTimeInterval:1.0f
+                                                                                target:self
+                                                                              selector:@selector(timerCountDown:)
+                                                                              userInfo:nil
+                                                                               repeats:YES];
+                                      [_timer fire];
+                                  }
+                                  else {
+                                      [YZHttpApiManager apiCheckCodeWithParameters:nil
+                                                                 completionHandler:^(id response, NSError *error) {
+                                                                     _imageCode = response;
+                                                                     [self.tableView reloadData];
+                                                                 }];
+                                  }
+                              }];
+    }
+    else {
+        UIAlertView *av = [[UIAlertView alloc] initWithTitle:nil
+                                                     message:@"请输入手机号或图形验证码"
+                                                    delegate:self
+                                           cancelButtonTitle:@"确定"
+                                           otherButtonTitles:nil, nil];
+        [av show];
+    }
+}
+
+- (IBAction)actionAgree:(UIButton *)sender {
+    sender.selected = !sender.selected;
+}
+
+- (IBAction)actionRegister:(UIButton *)sender {
+    if (_tfMobileRegister.text.length && _tfCodeRegister.text.length && _tfPasswordRegister.text.length && _tfPasswordConfirm.text.length) {
+        [YZHttpApiManager apiRegisterWithParameters:@{@"mobile"          : _tfMobileRegister.text,
+                                                      @"imgCheckCode"    : _tfImageCode.text,
+                                                      @"checkCode"       : _tfCodeRegister.text,
+                                                      @"password"        : [Utility md5:_tfPasswordRegister.text],
+                                                      @"confirmPassword" : [Utility md5:_tfPasswordConfirm.text],
+                                                      @"agreement"       : @"true",
+                                                      @"inviter"         : @"",
+                                                      @"fromType"        : @(4)}
+                                  completionHandler:^(id response, NSError *error) {
+                                      if ([response[@"code"] integerValue] == 100) {
+                                          [YZToastView showToastWithText:response[@"msg"]];
+                                          return;
+                                      }
+
+                                      [MobClick event:@"login_register_confirm"];
+
+                                      [self dismissViewControllerAnimated:YES completion:nil];
+                                      [[NSNotificationCenter defaultCenter] postNotificationName:kUserShouldGet object:nil];
+                                  }];
+    }
+}
+
+- (IBAction)actionLogin:(UIButton *)sender {
+    if (_tfMobileLogin.text.length && _tfPasswordLogin.text.length) {
+        [MobClick event:@"usercenter_login_confirm"];
+        [YZHttpApiManager apiLoginWithParameters:@{@"mobile"  : _tfMobileLogin.text,
+                                                   @"password": [Utility md5:_tfPasswordLogin.text],
+                                                   @"remember": @(YES)}
+                               completionHandler:^(id response, NSError *error) {
+                                   if ([response[@"code"] integerValue] == 100) {
+                                       [YZToastView showToastWithText:response[@"msg"]];
+                                       return;
+                                   }
+                                   [self dismissViewControllerAnimated:YES completion:^{
+                                       [[NSNotificationCenter defaultCenter] postNotificationName:kUserShouldGet object:nil];
+                                   }];
+                               }];
+    }
+}
+
+
+#pragma mark - segue
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"segue_setting_agreement"]) {
+        [(YZNewsDetailVC *)segue.destinationViewController setUrl:[NSString stringWithFormat:@"%@agreement.html", url_base]];
+        [(YZNewsDetailVC *)segue.destinationViewController setTitle:@"服务协议"];
+    }
+}
+
+@end

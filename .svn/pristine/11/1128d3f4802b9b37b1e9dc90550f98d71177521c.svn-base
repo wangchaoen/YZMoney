@@ -1,0 +1,46 @@
+//
+//  YZAddressVC.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/25.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZAddressVC.h"
+#import "YZAdderssCell.h"
+
+@interface YZAddressVC ()<UITableViewDelegate, UITableViewDataSource>
+@property (nonatomic, strong) UITableView *tableView;
+
+@end
+
+@implementation YZAddressVC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.navigationItem.title = @"地址管理";
+    self.view.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:self.tableView];
+}
+- (UITableView *)tableView {
+    if (!_tableView) {
+        _tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, S_W, S_H)];
+        _tableView.tableFooterView = [UIView new];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+        [_tableView registerClass:[YZAdderssCell class] forCellReuseIdentifier:NSStringFromClass([YZAdderssCell class])];
+    }
+    return _tableView;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 10;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    YZAdderssCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([YZAdderssCell class])];
+    return cell;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 60;
+}
+@end

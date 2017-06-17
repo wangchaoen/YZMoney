@@ -1,0 +1,375 @@
+//
+//  YZProductFilterTV.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/10.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZProductFilterTV.h"
+#import "UIButton+Inspectable.h"
+#import "ProductModel.h"
+
+
+
+
+@interface YZProductFilterTV () <UITableViewDataSource, UITableViewDelegate, UIScrollViewDelegate>
+
+@property (nonatomic, strong) UIView *viewButton;
+@property (nonatomic, strong) NSMutableDictionary *dicCondition;
+
+@property (nonatomic, strong) UIImage *imageNormal;
+@property (nonatomic, strong) UIImage *imageSelected;
+
+@property (nonatomic, copy) NSDictionary *chooseDic;
+@end
+
+const float gap = 6.0f;
+const float height = 30.0f;
+
+@implementation YZProductFilterTV
+- (instancetype)initWithFrame:(CGRect)frame style:(UITableViewStyle)style data:(NSArray *)data{
+    self = [super initWithFrame:frame style:style];
+    if (self) {
+        [MobClick event:@"list_filter"];
+        _chooseDic = @{@"saleStatus": @[@0, @1]};
+    
+        _arrCondition = data;
+        _dicCondition = [NSMutableDictionary dictionaryWithDictionary:@{@"saleStatus": [@[@(1), @(2)] mutableCopy]}];
+//        _dicCondition = [NSMutableDictionary dictionary];
+        self.delegate = self;
+        self.dataSource = self;
+        self.contentInset = UIEdgeInsetsMake(0.0f, 0.0f, 50.0f, 0.0f);
+        self.backgroundColor = [UIColor clearColor];
+        self.tableFooterView = [[UIView alloc] init];
+        
+        _viewVisual = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
+        _viewVisual.frame = self.frame;
+        [_viewVisual addSubview:self];
+        self.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
+        
+        _viewButton = [[UIView alloc] initWithFrame:CGRectMake(0.0f, CGRectGetHeight(_viewVisual.frame)-50.0f, CGRectGetWidth(_viewVisual.frame), 50.0f)];
+//        _viewButton.backgroundColor = RGBColor(255.0f, 0.0f, 0.0f, 1.0f);
+        [_viewVisual addSubview:_viewButton];
+        
+        UIButton *b1 = [[UIButton alloc] initWithFrame:CGRectMake(0.0f, 0.0f, CGRectGetWidth(_viewButton.frame)/2, 50.0f)];
+        [b1 setTitle:@"重置" forState:UIControlStateNormal];
+        [b1 addTarget:self action:@selector(resetAction) forControlEvents:UIControlEventTouchUpInside];
+//        b1.bgColorHighlighted = YZ_RED_COLOR;
+        b1.bgColorNormal = YZ_RED_COLOR;
+        [_viewButton addSubview:b1];
+        
+        UIButton *b2 = [[UIButton alloc] initWithFrame:CGRectMake(CGRectGetWidth(_viewButton.frame)/2, 0.0f, CGRectGetWidth(_viewButton.frame)/2, 50.0f)];
+        [b2 setTitle:@"确定" forState:UIControlStateNormal];
+        [b2 addTarget:self action:@selector(dismissFilterView:) forControlEvents:UIControlEventTouchUpInside];
+//        b2.bgColorHighlighted = YZ_RED_COLOR;
+        b2.bgColorNormal = YZ_RED_COLOR;
+        [_viewButton addSubview:b2];
+        
+        UIView *v = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetWidth(_viewButton.frame)/2, 0.0f, 1.0f, CGRectGetHeight(_viewButton.frame))];
+        v.backgroundColor = RGBColor(229.0f, 229.0f, 229.0f, 1.0f);
+        [_viewButton addSubview:v];
+    }
+    return self;
+}
+- (void)setArrCondition:(NSArray *)arrCondition {
+    _arrCondition = arrCondition;
+    _dicCondition = [NSMutableDictionary dictionaryWithDictionary:@{@"saleStatus": [@[@0, @1] mutableCopy]}];
+//    _dicCondition = [NSMutableDictionary dictionary];
+    _chooseDic = @{@"saleStatus": @[@0, @1]};
+//    _chooseDic = @{};
+    if (self.comeType == ComeTypeWithProdect) {
+        if ([DataManager sharedManager].productDic) {
+            if ([DataManager sharedManager].productDic[self.typeName]) {
+                _chooseDic = [DataManager sharedManager].productDic[self.typeName];
+                _dicCondition = [NSMutableDictionary dictionaryWithDictionary: _chooseDic];
+            }
+        }  
+    }
+
+}
+- (void)setTypeName:(NSString *)typeName {
+    _typeName = typeName;
+}
+- (void)showTableView {
+    _viewVisual.frame = CGRectMake(CGRectGetMinX(_viewVisual.frame), CGRectGetMaxY(_viewVisual.frame),
+                                      CGRectGetWidth(_viewVisual.frame), CGRectGetHeight(_viewVisual.frame));
+    WEAK_SELF;
+    [UIView animateWithDuration:0.5f
+                          delay:0.0f
+         usingSpringWithDamping:0.5f
+          initialSpringVelocity:0.5f
+                        options:0
+                     animations:^{
+                         weakSelf.viewVisual.frame = CGRectMake(0, 64, S_W, S_H - 64);
+                     }
+                     completion:^(BOOL finished) {}];
+
+}
+- (void)removeTableView {
+    WEAK_SELF;
+    [UIView animateWithDuration:0.3f
+                     animations:^{
+                         weakSelf.viewVisual.frame = CGRectMake(CGRectGetMinX(weakSelf.viewVisual.frame), - S_H,
+                                                                    CGRectGetWidth(weakSelf.viewVisual.frame), CGRectGetHeight(weakSelf.viewVisual.frame));
+                     }
+                     completion:^(BOOL finished) {
+                         [weakSelf removeFromSuperview];
+                         [weakSelf.viewVisual removeFromSuperview];
+                     }];
+}
+
+- (void)dismissFilterView:(UIButton *)sender {
+    WEAK_SELF;
+    [UIView animateWithDuration:0.5f
+                     animations:^{
+                         weakSelf.viewVisual.frame = CGRectMake(CGRectGetMinX(weakSelf.viewVisual.frame), CGRectGetMaxY(weakSelf.viewVisual.frame),
+                                                        CGRectGetWidth(weakSelf.viewVisual.frame), CGRectGetHeight(weakSelf.viewVisual.frame));
+                     }
+                     completion:^(BOOL finished) {
+                         [weakSelf removeFromSuperview];
+                         [weakSelf.viewVisual removeFromSuperview];
+                     }];
+    
+    if ([sender.titleLabel.text isEqualToString:@"确定"]) {
+        if (self.determineBlock) {
+            self.determineBlock();
+        }
+        if (_filterDoneBlock) {
+            [MobClick event:@"list_filter_confirm"];
+            if (self.typeName) {
+                [[DataManager sharedManager].productDic setObject:[_dicCondition mutableCopy] forKey: self.typeName];
+            }
+            NSArray *array = _dicCondition[@"saleStatus"];
+            if (array.count == 0) {
+                [_dicCondition setObject:@[@2, @1, @0] forKey:@"saleStatus"];
+            }else {
+                if (array.count == 2 && [array containsObject:@0] && [array containsObject:@1] && _dicCondition.count == 1){
+                    [_dicCondition removeAllObjects];
+                }
+            }
+            _filterDoneBlock(_dicCondition);
+        }
+    }
+}
+
+- (NSInteger)conditionIndexOfButton:(UIButton *)button {
+    for (NSDictionary *dic in _arrCondition) {
+        if ([button.accessibilityIdentifier isEqualToString:dic[@"name"]]) {
+            return [_arrCondition indexOfObject:dic];
+        }
+    }
+    return -1;
+}
+
+- (UIImage *)imageNormal {
+    if (!_imageNormal) {
+        _imageNormal = [YZHelper roundCornerImageWithSize:CGSizeMake((CGRectGetWidth(self.frame)-5*gap)/4, height) colorFill:[UIColor clearColor]];
+    }
+    return _imageNormal;
+}
+
+- (UIImage *)imageSelected {
+    if (!_imageSelected) {
+        _imageSelected = [YZHelper createImageWithColor:YZ_RED_COLOR];
+//        _imageSelected = [YZHelper roundCornerImageWithSize:CGSizeMake((CGRectGetWidth(self.frame)-5*gap)/4, height) colorFill:RGBColor(255.0f, 0.0f, 0.0f, 1.0f)];
+    }
+    return _imageSelected;
+}
+
+
+#pragma mark - table view
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return _arrCondition.count;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+//    switch (indexPath.row) {
+//        case 0:
+//            return 100.0f;
+//            break;
+//        default: {
+            if (_arrCondition.count < indexPath.row) {
+                return 0;
+            }
+            NSArray *arr = [_arrCondition[indexPath.row] valueForKey:@"options"];
+            NSInteger line = (arr.count)/4+1;
+            return 40.0f+gap*(line+1)+height*line;
+//            break;
+//        }
+//    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:[NSString stringWithFormat:@"cell_%ld", (long)indexPath.row]];
+    if (!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:[NSString stringWithFormat:@"cell_%ld", (long)indexPath.row]];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        cell.contentView.backgroundColor = [UIColor clearColor];
+        cell.backgroundColor = [UIColor clearColor];
+        
+    }
+        for (UIView *view in cell.contentView.subviews) {
+            [view removeFromSuperview];
+        }
+        
+        float width = (CGRectGetWidth(self.frame)-5*gap)/4;
+                NSDictionary *dic = _arrCondition[indexPath.row];
+                if (dic.count <= 0) {
+                    return cell;
+                }
+                UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(gap, 10.0f, CGRectGetWidth(self.frame)-gap*2, 30.0f)];
+                l.text = [dic valueForKey:@"text"];
+                [cell.contentView addSubview:l];
+                
+                
+                NSMutableArray *arr = [[dic valueForKey:@"options"] mutableCopy];
+                [arr insertObject:@{@"text":@"全部"} atIndex:0];
+                NSString *name = [dic valueForKey:@"name"];
+                
+                for (int i=0; i<arr.count; i++) {
+                    UIButton *b = [[UIButton alloc] initWithFrame:CGRectMake(gap*(i%4+1)+width*(i%4), 40.0f+gap*(i/4+1)+height*(i/4),
+                                                                             width, height)];
+                    [b.titleLabel setFont:[UIFont systemFontOfSize:12.0f]];
+                    b.accessibilityIdentifier = [dic valueForKey:@"name"];
+                    b.tag = i;
+                    [b setTitle:[arr[i] valueForKey:@"text"] forState:UIControlStateNormal];
+                    [b setTitleColor:RGBColor(59.0f, 59.0f, 59.0f, 1.0f) forState:UIControlStateNormal];
+                    [b setTitleColor:[UIColor whiteColor] forState:UIControlStateSelected];
+                    b.layer.cornerRadius = 4;
+                    b.layer.masksToBounds = true;
+                    b.layer.borderWidth = 0.5;
+                    b.layer.borderColor = [UIColor blackColor].CGColor;
+                    [b setBackgroundImage:self.imageSelected forState:UIControlStateSelected];
+                    [b addTarget:self action:@selector(actionOptionClicked:) forControlEvents:UIControlEventTouchUpInside];
+                    
+                    NSArray *chooseArr;
+                    if (self.chooseDic[name]) {
+                        chooseArr = self.chooseDic[name];
+                    }
+                    if (chooseArr.count > 0) {
+                        for (NSString *str in chooseArr) {
+                            if ([str integerValue] == b.tag - 1) {
+                                b.selected = YES;
+                            }
+                        }
+                    }else {
+                        b.selected = i == 0;
+                    }
+                    
+                    [cell.contentView addSubview:b];
+                }
+    return cell;
+}
+
+#pragma mark - scroll view
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    WEAK_SELF;
+    [UIView animateWithDuration:0.5f animations:^{
+        weakSelf.viewButton.frame = CGRectMake(0.0f, CGRectGetHeight(weakSelf.viewVisual.frame), CGRectGetWidth(weakSelf.viewButton.frame), CGRectGetHeight(weakSelf.viewButton.frame));
+        weakSelf.viewButton.alpha = 0.0f;
+    }];
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    WEAK_SELF;
+    [UIView animateWithDuration:0.5f animations:^{
+        weakSelf.viewButton.frame = CGRectMake(0.0f, CGRectGetHeight(weakSelf.viewVisual.frame)-CGRectGetHeight(weakSelf.viewButton.frame), CGRectGetWidth(weakSelf.viewButton.frame), CGRectGetHeight(weakSelf.viewButton.frame));
+        weakSelf.viewButton.alpha = 1.0f;
+    }];
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    if (!decelerate) {
+        WEAK_SELF;
+        [UIView animateWithDuration:0.5f animations:^{
+            weakSelf.viewButton.frame = CGRectMake(0.0f, CGRectGetHeight(weakSelf.viewVisual.frame)-CGRectGetHeight(weakSelf.viewButton.frame), CGRectGetWidth(weakSelf.viewButton.frame), CGRectGetHeight(weakSelf.viewButton.frame));
+            weakSelf.viewButton.alpha = 1.0f;
+        }];
+    }
+}
+
+
+#pragma mark - button action
+- (void)resetAction {
+    //重置
+    _dicCondition = [NSMutableDictionary dictionaryWithDictionary:@{@"saleStatus": [@[@0, @1] mutableCopy]}];
+    _chooseDic = @{@"saleStatus": @[@0, @1]};
+    [self reloadData];
+}
+- (void)actionOptionClicked:(UIButton *)sender {
+    //button UI
+    if (!sender.tag) {
+        if (sender.selected) {
+            return;
+        }else {
+            //全部
+            sender.selected = !sender.selected;
+            for (UIView *v in sender.superview.subviews) {
+                if ([v isKindOfClass:[UIButton class]]) {
+                    if (v.tag > 0) {
+                        [(UIButton *)v setSelected:NO];
+                    }
+                }
+            }
+        }
+    }else {
+        // 其他
+        sender.selected = !sender.selected;
+        if (sender.selected) {
+            for (UIView *v in sender.superview.subviews) {
+                if ([v isKindOfClass:[UIButton class]]) {
+                    if (v.tag == 0) {
+                        [(UIButton *)v setSelected:NO];
+                    }
+                }
+            }
+        }else {
+            // 取消选中
+            NSInteger i = 0;
+            for (UIView *v in sender.superview.subviews) {
+                if ([v isKindOfClass:[UIButton class]]) {
+                    if (![(UIButton *)v isSelected]) {
+                        i++;
+                    }
+                }
+            }
+            
+                if (i-1 == [[_arrCondition[[self conditionIndexOfButton:sender]] valueForKey:@"options"] count]) {
+                    // 取消最后一个选中的
+                    for (UIView *v in sender.superview.subviews) {
+                        if ([v isKindOfClass:[UIButton class]]) {
+                            if (v.tag == 0) {
+                                [(UIButton *)v setSelected:YES];
+                            }
+                        }
+                    }
+                }
+            
+        }
+    }
+    //button data
+    if (!sender.tag) {
+        [_dicCondition removeObjectForKey:sender.accessibilityIdentifier];
+    } else {
+        if (sender.selected) {
+                NSMutableArray *arr = [[_dicCondition valueForKey:sender.accessibilityIdentifier] mutableCopy]?:[NSMutableArray array];
+                [arr addObject: @(sender.tag - 1)];
+                [_dicCondition setValue:arr forKey:sender.accessibilityIdentifier];
+            } else {
+                NSMutableArray *arr = [_dicCondition valueForKey:sender.accessibilityIdentifier];
+                [arr removeObject:@(sender.tag - 1)];
+                if (arr.count) {
+                    [_dicCondition setValue:arr forKey:sender.accessibilityIdentifier];
+                }else {
+                    [_dicCondition removeObjectForKey:sender.accessibilityIdentifier];
+                }
+        }
+    }
+    
+    [MobClick event:@"filterList" label:sender.accessibilityIdentifier];
+}
+
+@end

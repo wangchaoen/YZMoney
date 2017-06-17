@@ -1,0 +1,290 @@
+//
+//  YZPasswordVC.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/23.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZPasswordVC.h"
+#import <CommonCrypto/CommonDigest.h>
+
+
+
+
+
+@interface YZPasswordVC ()
+
+@property (nonatomic, strong) UITextField *tfMobile;
+@property (nonatomic, strong) UITextField *tfImageCode;
+@property (nonatomic, strong) UITextField *tfCode;
+@property (nonatomic, strong) UITextField *tfPassword1;
+@property (nonatomic, strong) UITextField *tfPassword2;
+@property (nonatomic, strong) UIButton *bCode;
+@property (nonatomic, strong) UIImage *imageCode;
+
+@property (nonatomic, strong) NSTimer *timer;
+@property (nonatomic, assign) NSInteger count;
+
+@end
+
+
+
+
+
+@implementation YZPasswordVC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    if ([[[(UINavigationController *)self.parentViewController viewControllers] objectAtIndex:0].title isEqualToString:@"登录/注册"]) {
+        self.title = @"忘记密码";
+    }
+    else {
+        self.title = @"修改密码";
+    }
+    
+    [YZHttpApiManager apiCheckCodeWithParameters:nil
+                               completionHandler:^(id response, NSError *error) {
+                                   _imageCode = response;
+                                   [self.tableView reloadData];
+                               }];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)timerCountDown:(NSTimer *)sender {
+    if (_count) {
+        _count--;
+        [_bCode setTitle:[NSString stringWithFormat:@"%ld秒", (long)_count] forState:UIControlStateDisabled];
+    }
+    else {
+        _count = 60;
+        _bCode.enabled = YES;
+        [_timer invalidate];
+    }
+}
+
+- (void)gestureTap:(UITapGestureRecognizer *)tap {
+    [YZHttpApiManager apiCheckCodeWithParameters:nil
+                               completionHandler:^(id response, NSError *error) {
+                                   _imageCode = response;
+                                   [self.tableView reloadData];
+                               }];
+}
+
+
+#pragma mark - table view
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return  [self.title isEqualToString:@"忘记密码"] ? 7 : 5;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([self.title isEqualToString:@"忘记密码"]) {
+        switch (indexPath.row) {
+            case 0:
+                return 15.0f;
+                break;
+            case 6:
+                return 120.0f;
+            default:
+                return 55.0f;
+                break;
+        }
+    }
+    else {
+        switch (indexPath.row) {
+            case 0:
+                return 15.0f;
+                break;
+            case 4:
+                return 120.0f;
+            default:
+                return 55.0f;
+                break;
+        }
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [[UITableViewCell alloc] init];
+    
+    if ([self.title isEqualToString:@"忘记密码"]) {
+        switch (indexPath.row) {
+            case 0: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_section"];
+                break;
+            }
+            case 1: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_mobile"];
+                _tfMobile = (UITextField *)[cell viewWithTag:1];
+                break;
+            }
+            case 2: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_imageCode"];
+                _tfImageCode = (UITextField *)[cell viewWithTag:1];
+                [(UIImageView *)[cell viewWithTag:2] setImage:_imageCode];
+                [(UIImageView *)[cell viewWithTag:2] addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(gestureTap:)]];
+                break;
+            }
+            case 3: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_code"];
+                _tfCode = (UITextField *)[cell viewWithTag:1];
+                _bCode = (UIButton *)[cell viewWithTag:2];
+                break;
+            }
+            case 4: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_password"];
+                _tfPassword1 = (UITextField *)[cell viewWithTag:1];
+                break;
+            }
+            case 5: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_passwordConfirm"];
+                _tfPassword2 = (UITextField *)[cell viewWithTag:1];
+                break;
+            }
+            case 6: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_button"];
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    else {
+        switch (indexPath.row) {
+            case 0: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_section"];
+                break;
+            }
+            case 1: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_code"];
+                _tfCode = (UITextField *)[cell viewWithTag:1];
+                _bCode = (UIButton *)[cell viewWithTag:2];
+                break;
+            }
+            case 2: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_password"];
+                _tfPassword1 = (UITextField *)[cell viewWithTag:1];
+                break;
+            }
+            case 3: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_passwordConfirm"];
+                _tfPassword2 = (UITextField *)[cell viewWithTag:1];
+                break;
+            }
+            case 4: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_button"];
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    
+    return cell;
+}
+
+
+#pragma mark - action
+
+- (IBAction)actionTap:(UITapGestureRecognizer *)sender {
+    [self.view endEditing:YES];
+}
+
+- (IBAction)actionCode:(UIButton *)sender {
+    if ([self.title isEqualToString:@"忘记密码"]) {
+        if (_tfMobile.text.length && _tfImageCode.text.length) {
+            [YZHttpApiManager apiCodePasswordWithParameters:@{@"mobile"   : _tfMobile.text,
+                                                              @"checkCode": _tfImageCode.text}
+                                          completionHandler:^(id response, NSError *error) {
+                                              if ([response[@"code"] integerValue] == 0) {
+                                                  _bCode.enabled = NO;
+                                                  _count = 60;
+                                                  _timer = [NSTimer scheduledTimerWithTimeInterval:1.0f
+                                                                                            target:self
+                                                                                          selector:@selector(timerCountDown:)
+                                                                                          userInfo:nil
+                                                                                           repeats:YES];
+                                                  [_timer fire];
+                                              }
+                                              else {
+                                                  [YZHttpApiManager apiCheckCodeWithParameters:nil
+                                                                             completionHandler:^(id response, NSError *error) {
+                                                                                 _imageCode = response;
+                                                                                 [self.tableView reloadData];
+                                                                             }];
+                                              }
+                                          }];
+        }
+        else {
+            UIAlertView *av = [[UIAlertView alloc] initWithTitle:nil
+                                                         message:@"请输入手机号或图形验证码"
+                                                        delegate:self
+                                               cancelButtonTitle:@"确定"
+                                               otherButtonTitles:nil, nil];
+            [av show];
+        }
+    }
+    else {
+        _bCode.enabled = NO;
+        _count = 60;
+        _timer = [NSTimer scheduledTimerWithTimeInterval:1.0f
+                                                  target:self
+                                                selector:@selector(timerCountDown:)
+                                                userInfo:nil
+                                                 repeats:YES];
+        [_timer fire];
+        
+        [YZHttpApiManager apiCodeCenterWithParameters:@{@"mobile": yz_user.phoneNo[@"value"]}
+                                    completionHandler:^(id response, NSError *error) {
+                                        
+                                    }];
+    }
+}
+
+- (IBAction)actionDone:(UIButton *)sender {
+    if ([self.title isEqualToString:@"忘记密码"]) {
+        if (_tfMobile.text.length && _tfCode.text.length && _tfPassword1.text.length && _tfPassword2.text.length) {
+            [YZHttpApiManager apiDoPasswordWithParameters:@{@"mobile"          : _tfMobile.text,
+                                                            @"imgCheckCode"    : _tfImageCode.text,
+                                                            @"checkCode"       : _tfCode.text,
+                                                            @"password"        : [Utility md5:_tfPassword1.text],
+                                                            @"confirmPassword" : [Utility md5:_tfPassword2.text]}
+                                        completionHandler:^(id response, NSError *error) {
+                                            if ([response[@"code"] integerValue] == 100) {
+                                                [YZToastView showToastWithText: response[@"msg"]];
+                                                return;
+                                            }
+
+                                            [self.navigationController popViewControllerAnimated:YES];
+                                        }];
+        }
+    }
+    else {
+        
+        if (_tfCode.text.length && _tfPassword1.text.length && _tfPassword2.text.length) {
+            [MobClick event:@"usercenter_modifypw"];
+            [YZHttpApiManager apiUpPasswordWithParameters:@{@"checkCode"    : _tfCode.text,
+                                                            @"newPassword1" : [Utility md5:_tfPassword1.text],
+                                                            @"newPassword2" : [Utility md5:_tfPassword2.text]}
+                                        completionHandler:^(id response, NSError *error) {
+                                            if (!response) {
+                                                return;
+                                            }
+                                            if ([response[@"code"] integerValue] == 100) {
+                                             [YZToastView showToastWithText: response[@"msg"]];
+                                                return;
+                                            }
+                                            [YZToastView showToastWithText:@"修改密码成功"];
+                                            [self.navigationController popViewControllerAnimated:YES];
+                                        }];
+        }
+    }
+}
+
+@end

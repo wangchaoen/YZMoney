@@ -1,0 +1,23 @@
+//
+//  YZMineAppointPictureVC.h
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/19.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+
+
+
+
+@interface YZMineAppointPictureVC : UIViewController
+
+@property (nonatomic, copy) NSString *idAppoint;
+@property (nonatomic, assign) NSInteger type;
+@property (nonatomic, strong) void (^pictureDoneBlock)(void);
+@property (nonatomic, strong) NSArray *arrImage;
+@property (nonatomic, assign) BOOL canDone;
+
+@end

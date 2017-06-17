@@ -1,0 +1,68 @@
+//
+//  YZCacheHelper.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/12/23.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZCacheHelper.h"
+
+
+
+
+
+@implementation YZCacheHelper
+
++ (void)cacheObject:(id)object file:(NSString *)file {
+    NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+    
+    [NSKeyedArchiver archiveRootObject:object toFile:[path stringByAppendingString:[NSString stringWithFormat:@"/%@",file]]];
+}
+
++ (id)objectCachedWithFile:(NSString *)file {
+    if (file.length <= 0) {
+        return nil;
+    }
+    NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+    return [NSKeyedUnarchiver unarchiveObjectWithFile:[path stringByAppendingString:[NSString stringWithFormat:@"/%@",file]]];
+}
+
++ (BOOL)deleteCachedWithFile:(NSString *)file {
+    NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) firstObject];
+    NSFileManager *manager = [NSFileManager defaultManager];
+    NSString *filePath = [path stringByAppendingString:[NSString stringWithFormat:@"/%@",file]];
+    if ([manager fileExistsAtPath:filePath]) {
+        BOOL remove = [manager removeItemAtPath:filePath error:nil];
+        return remove;
+    } else {
+        return false;
+    }
+}
+
++(BOOL)saveImageDocuments:(UIImage *)image{
+    if (!yz_user) {
+        return false;
+    }
+    //拿到图片
+    UIImage *imagesave = image;
+    NSString *path_sandox = NSHomeDirectory();
+    //设置一个图片的存储路径
+    NSString *imagePath = [NSString stringWithFormat:@"%@/Documents/%@test.png", path_sandox, yz_user.mobile];
+    //把图片直接保存到指定的路径（同时应该把图片的路径imagePath存起来，下次就可以直接用来取）
+    return [UIImagePNGRepresentation(imagesave) writeToFile:imagePath atomically:YES];
+}
+// 读取并存贮到相册
++(UIImage *)getDocumentImage{
+    // 读取沙盒路径图片
+    if (!yz_user) {
+        return nil;
+    }
+    NSString *path_sandox = NSHomeDirectory();
+
+    NSString *imagePath = [NSString stringWithFormat:@"%@/Documents/%@test.png", path_sandox, yz_user.mobile];
+    // 拿到沙盒路径图片
+    UIImage *imgFromUrl3=[[UIImage alloc]initWithContentsOfFile:imagePath];
+    return imgFromUrl3;
+}
+@end

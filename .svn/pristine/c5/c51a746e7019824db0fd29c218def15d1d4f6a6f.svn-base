@@ -1,0 +1,22 @@
+//
+//  YZCityView.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/28.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZCityView.h"
+
+@implementation YZCityView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        
+    }
+    return self;
+}
+
+@end

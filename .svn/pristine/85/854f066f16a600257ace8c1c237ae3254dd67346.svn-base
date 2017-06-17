@@ -1,0 +1,39 @@
+//
+//  YZConTitleView.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/11.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZConTitleView.h"
+
+@implementation YZConTitleView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        NSArray *array = @[@"可申请", @"我的申请"];
+        for (int i = 0; i < array.count; i++) {
+            UIButton *but = [UIButton buttonWithType:UIButtonTypeCustom];
+            but.frame = CGRectMake(i * S_W / 2, 0, S_W / 2, 40);
+            [but setTitle:array[i] forState:UIControlStateNormal];
+            [but setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+            but.titleLabel.font = [UIFont systemFontOfSize:14];
+            but.tag = i;
+            [self addSubview:but];
+        }
+        [self addSubview:self.chooseView];
+    }
+    return self;
+}
+- (UIView *)chooseView {
+    if (!_chooseView) {
+        _chooseView = [[UIView alloc]init];
+        _chooseView.backgroundColor = YZ_RED_COLOR;
+        _chooseView.frame = CGRectMake((S_W / 2 - 60) / 2, 39, 60, 1);
+    }
+    return _chooseView;
+}
+@end

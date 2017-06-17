@@ -1,0 +1,127 @@
+//
+//  FScreenController.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/3/13.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "FScreenController.h"
+#import "YZProductFilterTV.h"
+#import "ProductNameModel.h"
+#import "ScreenTitleView.h"
+#import "YZProductVC.h"
+#import "UIImage+ImageWithColor.h"
+
+
+@interface FScreenController ()<ScreenTitleViewDelegate>
+@property (nonatomic, strong) YZProductFilterTV *pfv;
+@property (nonatomic, strong) ScreenTitleView *titleView;
+@property (nonatomic, copy) NSString *type;
+@property (nonatomic, assign) NSInteger index;
+@end
+
+@implementation FScreenController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [MobClick event:@"Index_filter"];
+    self.index = 0;
+    self.type = @"";
+    
+    self.titleView = [[ScreenTitleView alloc]initWithFrame:CGRectMake(0, 0, S_W, 120)];
+    self.titleView.delegate = self;
+    
+    self.view.backgroundColor = YZ_GRAY_COLOR;
+    self.navigationItem.title = @"筛选";
+    
+    UIButton *but = [UIButton buttonWithType:UIButtonTypeCustom];
+    but.frame = CGRectMake(0, 0, 24, 24);
+    [but addTarget:self action:@selector(backAction) forControlEvents:UIControlEventTouchUpInside];
+    [but setBackgroundImage:[UIImage imageNamed:@"back_white_icon"] forState:UIControlStateNormal];
+    UIBarButtonItem *leftBut = [[UIBarButtonItem alloc]initWithCustomView:but];
+    self.navigationItem.leftBarButtonItem = leftBut;
+    
+    YZProductFilterTV *pfv = [[YZProductFilterTV alloc] initWithFrame:CGRectMake(0, 64, S_W, S_H - 64) style:UITableViewStylePlain data:@[]];
+    pfv.comeType = ComeTypeWithIndex;
+    [self.view addSubview:pfv.viewVisual];
+    
+#pragma mark - 选择完成回调
+    WEAK_SELF;
+    pfv.filterDoneBlock = ^(NSDictionary *parameters) {
+        if (parameters) {
+            [weakSelf disMiss];
+            NSMutableDictionary *dicParam = [parameters mutableCopy];
+            for (NSString *key in dicParam.allKeys) {
+                NSString *strValue = [dicParam[key] componentsJoinedByString:@","];
+                [dicParam setValue:strValue forKey:key];
+            }
+            [dicParam setValue:@(1) forKey:@"pageNum"];
+            [dicParam setValue:weakSelf.type forKey:@"columnUrl"];
+            [Utility tabBarWithIndex:1];
+            [(YZProductVC *)([(UINavigationController *)[(UITabBarController *)APPDELEGATE.window.rootViewController viewControllers][1] viewControllers].firstObject) setIndexEntry:weakSelf.index];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [[NSNotificationCenter defaultCenter]postNotificationName:NOT_PRODUCT_SCREEN object:nil userInfo:dicParam];
+            });
+        }
+    };
+    self.pfv = pfv;
+    [pfv showTableView];
+    self.pfv.tableHeaderView = self.titleView;
+    [self request];
+}
+#pragma mark - request
+- (void)request {
+    WEAK_SELF;
+    [YZHttpApiManager apiProductCategoryWithParameters:nil completionHandler:^(id response, NSError *error) {
+        if (![response[@"success"] boolValue]) {
+            return;
+        }
+        NSDictionary *data = response[@"data"];
+        NSArray *tabViewList = data[@"tabViewList"];
+        for (NSDictionary *dic in tabViewList) {
+            ProductNameModel *model = [[ProductNameModel alloc]initWithDict:dic];
+            
+            [weakSelf.titleView.titleArr addObject:model];
+        }
+        [weakSelf.titleView creatProductBut:weakSelf.titleView.titleArr];
+        NSInteger line = (weakSelf.titleView.titleArr.count) / 4 + 1;
+        weakSelf.titleView.frame = CGRectMake(0, 0, S_W, 40.0f + 6 * (line + 1) + 30 * line);
+        [weakSelf.pfv reloadData];
+        ProductNameModel *model = [weakSelf.titleView.titleArr firstObject];
+        weakSelf.type = model.code;
+        weakSelf.pfv.typeName = model.code;
+        [weakSelf requestListWithKey: model.code];
+    }];
+}
+
+- (void)requestListWithKey:(NSString *)key {
+    WEAK_SELF;
+    if (!key) {
+        return;
+    }
+    [YZHttpApiManager apiProductConditionWithParameters:@{@"columnUrl": key} completionHandler:^(id response, NSError *error) {
+        weakSelf.pfv.arrCondition = response[@"data"];
+        [weakSelf.pfv reloadData];
+    }];
+}
+#pragma mark - text
+- (void)backAction {
+    [self.pfv removeTableView];
+    [self disMiss];
+}
+- (void)disMiss {
+    WEAK_SELF;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weakSelf.navigationController popViewControllerAnimated:false];
+    });
+}
+
+#pragma mark - customDelegate
+- (void)productButAction:(ProductNameModel *)model index:(NSInteger)index{
+    self.type = model.code;
+    self.index = index;
+    self.pfv.typeName = model.code;
+    [self requestListWithKey:model.code];
+}
+@end

@@ -1,0 +1,111 @@
+//
+//  YZHotProductVC.m
+//  YZMoney
+//
+//  Created by 7仔 on 16/6/13.
+//  Copyright © 2016年 yzmoney. All rights reserved.
+//
+
+#import "YZHotProductVC.h"
+#import "YZProductModel.h"
+#import "YZProductDetailVC.h"
+#import "HomeProductCell.h"
+
+
+
+
+@interface YZHotProductVC ()
+
+@property (nonatomic, copy) NSMutableArray *arrProduct;
+@property (nonatomic, assign) BOOL canLoad;
+@property (nonatomic, assign) NSInteger pageSize;
+
+@end
+
+
+
+
+
+@implementation YZHotProductVC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    self.tableView.estimatedRowHeight = 180.0f;
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+    [self loadDataWithPage:1];
+    self.tableView.backgroundColor = YZ_GRAY_COLOR;
+    [self.tableView registerClass:[HomeProductCell class] forCellReuseIdentifier:NSStringFromClass([HomeProductCell class])];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)loadDataWithPage:(NSInteger)page {
+    _canLoad = NO;
+    [YZHttpApiManager apiHotProductWithParameters:@{@"pageNum": @(page)}
+                                completionHandler:^(id response, NSError *error) {
+                                    _arrProduct = page==1 ? [NSMutableArray array] : _arrProduct;
+                                    for (NSDictionary *dic in [response valueForKeyPath:@"data.result"]) {
+                                        [_arrProduct addObject:[[YZProductModel alloc] modelFromJson:dic]];
+                                    }
+                                    [self.tableView reloadData];
+                                    
+                                    _pageSize = [[response valueForKeyPath:@"data.pageSize"] integerValue];
+                                    _canLoad = _arrProduct.count<[[response valueForKeyPath:@"data.totalCount"] integerValue];
+                                }];
+}
+
+
+#pragma mark - table view
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return _arrProduct.count;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return [HomeProductCell returnRowsHeightWith:_arrProduct[indexPath.row]];
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+//    YZProductCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell_product"];
+//    if (!cell) {
+//        cell = [[YZProductCell alloc] init];
+//    }
+    HomeProductCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([HomeProductCell class])];
+    [cell sendModelViewIndexWith:_arrProduct[indexPath.row]];
+//    [cell configureCellWithProduct:_arrProduct[indexPath.row]];
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    YZProductModel *model = _arrProduct[indexPath.row];
+    if (model.checkLogin && !ISLOGIN) {
+        [APPDELEGATE.window.rootViewController performSegueWithIdentifier:@"segue_tab_login" sender:nil];
+    }
+    else {
+        [self performSegueWithIdentifier:@"segue_hot_product" sender: model];
+    }
+}
+
+
+#pragma mark - scroll view
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView.contentSize.height-scrollView.contentOffset.y-CGRectGetHeight(scrollView.frame)<100.0f && _canLoad) {
+        [self loadDataWithPage:_arrProduct.count/_pageSize+1];
+    }
+}
+
+
+#pragma mark - segue
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"segue_hot_product"]) {
+        [(YZProductDetailVC *)segue.destinationViewController setIdProduct:[sender ID]];
+    }
+}
+
+@end

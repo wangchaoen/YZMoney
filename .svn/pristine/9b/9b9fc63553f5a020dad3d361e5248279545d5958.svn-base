@@ -1,0 +1,56 @@
+//
+//  FPCertificationVC.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/5/2.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "FPCertificationVC.h"
+#import "IDCardCell.h"
+#import "AddImageCell.h"
+
+@interface FPCertificationVC ()<UITableViewDelegate, UITableViewDataSource>
+@property (nonatomic, strong)UITableView *tableView;
+@end
+
+@implementation FPCertificationVC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.view.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:self.tableView];
+}
+- (UITableView *)tableView {
+    if (!_tableView) {
+        _tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, S_W, S_H)];
+        [_tableView registerClass:[AddImageCell class] forCellReuseIdentifier:NSStringFromClass([AddImageCell class])];
+        [_tableView registerClass:[IDCardCell class] forCellReuseIdentifier:NSStringFromClass([IDCardCell class])];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        _tableView.tableFooterView = [UIView new];
+    }
+    return _tableView;
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 4;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.row == 0) {
+        IDCardCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([IDCardCell class])];
+        return cell;
+    }
+    AddImageCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([AddImageCell class])];
+    return cell;
+}
+- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSInteger a = 1;
+    CGFloat height = 110;
+    if (indexPath.row == 0) {
+        return height + 50;
+    }
+    return 50 + height * ((a + 1) / 2) + 20 * ((a + 1) / 2);
+}
+
+
+@end

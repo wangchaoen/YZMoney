@@ -1,0 +1,42 @@
+//
+//  YZProductModel.h
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/6.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZJsonBaseModel.h"
+
+@interface YZProductModel : YZJsonBaseModel
+@property (nonatomic, copy) NSString *ID;
+@property (nonatomic, assign) NSInteger sequence;
+@property (nonatomic, copy) NSString *name;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, assign) NSInteger periodNum;
+@property (nonatomic, copy) NSString *progressDesc;
+@property (nonatomic, copy) NSString *cycle;
+@property (nonatomic, copy) NSString *saleStatusView;
+@property (nonatomic, copy) NSString *expectedIncome;
+@property (nonatomic, copy) NSString *commission;
+@property (nonatomic, copy) NSString *payMethod;
+@property (nonatomic, copy) NSString *investField;
+@property (nonatomic, copy) NSString *issuer;
+@property (nonatomic, copy) NSString *managerCompany;
+@property (nonatomic, copy) NSString *sumNetValueView;
+@property (nonatomic, copy) NSString *fundManager;
+@property (nonatomic, copy) NSString *priorPreviewImgUrl;
+@property (nonatomic, copy) NSString *column;
+@property (nonatomic, assign) NSTimeInterval offsetTime;
+@property (nonatomic, assign) NSTimeInterval reserveDate;
+@property (nonatomic, assign) BOOL detailCheckLogin;
+@property (nonatomic, assign) BOOL docCheckLogin;
+@property (nonatomic, assign) BOOL newProduct;
+@property (nonatomic, assign) BOOL onMarketing;
+@property (nonatomic, assign) BOOL soldOut;
+@property (nonatomic, copy) NSArray *tagList;
+@property (nonatomic, copy) NSArray *gridViewList;
+
+@property (nonatomic, copy) NSString *shareUrl;
++ (NSArray *)jsonWithData:(NSDictionary *)data;
+@end

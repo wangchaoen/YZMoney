@@ -1,0 +1,302 @@
+//
+//  YZClientListVC.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/17.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZClientListVC.h"
+#import "YZClientEditVC.h"
+#import "YZClientViewVC.h"
+
+
+
+
+
+@interface YZClientListVC () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIGestureRecognizerDelegate>
+
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+
+@property (nonatomic, strong) NSMutableArray *arrClient;
+@property (nonatomic, strong) NSMutableArray *arrSearchResult;
+@property (nonatomic, strong) UIView *viewSearchBackground;
+
+@property (nonatomic, strong) NSArray *arrTypePersonIdentify;
+@property (nonatomic, strong) NSArray *arrTypeOrgIdentify;
+
+@end
+
+
+
+
+
+@implementation YZClientListVC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+    self.tabBarController.tabBar.hidden = YES;
+
+    _arrClient = [NSMutableArray array];
+    _arrSearchResult = [NSMutableArray array];
+    [self apiManager];
+    
+    [YZHttpClient requestWithNoToastMethod:@"POST" url:@"member/customer/config" parameters:nil completionHandler:^(id response, NSError *error) {
+        _arrTypePersonIdentify = [response
+                                  valueForKeyPath:@"data.personIdentifyTypeList"];
+        _arrTypeOrgIdentify = [response valueForKeyPath:@"data.orgIdentifyTypeList"];
+        
+    } finished:^{
+        
+    }];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)apiManager {
+    [YZHttpApiManager apiClientListWithParameters:nil
+                                completionHandler:^(id response, NSError *error) {
+                                                                     [_arrClient removeAllObjects];
+                                                                     for (NSDictionary *dic in [response valueForKeyPath:@"data.customerResult.result"]) {
+                                                                         [_arrClient addObject:[[[YZClientModel alloc] init] modelFromJson:dic]];
+                                                                     }
+                                                                     [self.tableView reloadData];
+                                }];
+}
+
+
+#pragma mark - table view
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return [tableView isEqual:self.tableView] ? 2 : 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if ([tableView isEqual:self.tableView]) {
+        return section ? _arrClient.count : 1;
+    }
+    else {
+        return _arrSearchResult.count;
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return section ? 20.0f : CGFLOAT_MIN;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([tableView isEqual:self.tableView]) {
+        return indexPath.section ? 70.0f : 130.0f;
+    }
+    else {
+        return 70.0f;
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [[UITableViewCell alloc] init];
+    
+    if ([tableView isEqual:self.tableView]) {
+        if (!indexPath.section) {
+            cell = [tableView dequeueReusableCellWithIdentifier:@"cell_header"];
+        }
+        else {
+            YZClientModel *client = _arrClient[indexPath.row];
+            NSArray *arr = @[@"自然人", @"机构"];
+            
+            if (_type == YZClientListTypeProduct) {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_client"];
+                [(UILabel *)[cell viewWithTag:1] setText:client.customerName];
+                [(UILabel *)[cell viewWithTag:2] setText:arr[client.customerType]];
+                [(UILabel *)[cell viewWithTag:3] setText:client.identifyNo];
+            }
+            else if (_type == YZClientListTypeMine) {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_client_indicator"];
+                [(UILabel *)[cell viewWithTag:1] setText:client.customerName];
+                [(UILabel *)[cell viewWithTag:2] setText:arr[client.customerType]];
+                [(UILabel *)[cell viewWithTag:3] setText:client.identifyNo];
+            }
+        }
+    }
+    else {
+        YZClientModel *client = _arrSearchResult[indexPath.row];
+        NSArray *arr = @[@"自然人", @"机构"];
+        
+        if (_type == YZClientListTypeProduct) {
+            cell = [self.tableView dequeueReusableCellWithIdentifier:@"cell_client"];
+            [(UILabel *)[cell viewWithTag:1] setText:client.customerName];
+            [(UILabel *)[cell viewWithTag:2] setText:arr[client.customerType]];
+            [(UILabel *)[cell viewWithTag:3] setText:client.identifyNo];
+        }
+        else if (_type == YZClientListTypeMine) {
+            cell = [self.tableView dequeueReusableCellWithIdentifier:@"cell_client_indicator"];
+            [(UILabel *)[cell viewWithTag:1] setText:client.customerName];
+            [(UILabel *)[cell viewWithTag:2] setText:arr[client.customerType]];
+            [(UILabel *)[cell viewWithTag:3] setText:client.identifyNo];
+        }
+    }
+    
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    [self.view endEditing:YES];
+    
+    if ([tableView isEqual:self.tableView]) {
+        if (_type==YZClientListTypeProduct && indexPath.section) {
+            _selectClientBlock(_arrClient[indexPath.row]);
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }
+    else {
+        if (_type == YZClientListTypeProduct) {
+            _selectClientBlock(_arrSearchResult[indexPath.row]);
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return indexPath.section ? YES : NO;
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    [YZHttpApiManager apiClientDeleteWithParameters:@{@"id": [_arrClient[indexPath.row] ID]}
+                                  completionHandler:^(id response, NSError *error) {
+                                      [_arrClient removeObjectAtIndex:indexPath.row];
+                                      [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
+                                  }];
+}
+
+
+#pragma mark - delegate
+
+-(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+    if (!_viewSearchBackground.superview) {
+        self.navigationItem.rightBarButtonItem.enabled = NO;
+        
+        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(gestureTap:)];
+        tap.delegate = self;
+        
+        _viewSearchBackground = [[UIView alloc] initWithFrame:CGRectMake(0.0f, 108.0f, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame)-108.0f)];
+        _viewSearchBackground.backgroundColor = RGBColor(0.0f, 0.0f, 0.0f, 0.4f);
+        [_viewSearchBackground addGestureRecognizer:tap];
+        [self.view addSubview:_viewSearchBackground];
+    }
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    [searchBar resignFirstResponder];
+    
+    [YZHttpApiManager apiClientSearchWithParameters:@{@"searchKey": searchBar.text}
+                                  completionHandler:^(id response, NSError *error) {
+                                      UITableView *tv = [[UITableView alloc] initWithFrame:CGRectMake(0.0f, 0.0f, CGRectGetWidth(_viewSearchBackground.frame), CGRectGetHeight(_viewSearchBackground.frame))];
+                                      tv.backgroundColor = YZ_GRAY_COLOR;
+                                      tv.delegate = self;
+                                      tv.dataSource = self;
+                                      tv.tableFooterView = [[UIView alloc] init];
+                                      [_viewSearchBackground addSubview:tv];
+                                      
+                                      [YZViewManager viewManagerWithView:tv
+                                                                    data:[response valueForKeyPath:@"data.customerResult.result"]
+                                                                   error:error
+                                                                   block:^{
+                                                                       [_arrSearchResult removeAllObjects];
+                                                                       for (NSDictionary *dic in [response valueForKeyPath:@"data.customerResult.result"]) {
+                                                                           [_arrSearchResult addObject:[[[YZClientModel alloc] init] modelFromJson:dic]];
+                                                                       }
+                                                                       [tv reloadData];
+                                                                   }];
+                                  }];
+}
+
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    if (!searchBar.text.length) {
+        for (UIView *v in _viewSearchBackground.subviews) {
+            [v removeFromSuperview];
+        }
+    }
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    return _viewSearchBackground.subviews.count ? NO : YES;
+}
+
+- (void)gestureTap:(UITapGestureRecognizer *)gesture {
+    self.navigationItem.rightBarButtonItem.enabled = YES;
+    [_viewSearchBackground removeFromSuperview];
+    [self.view endEditing:YES];
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    [self.view endEditing:YES];
+}
+
+
+#pragma mark - action
+
+- (IBAction)actionEditingChanged:(UITextField *)sender {
+    NSString *marked = [sender textInRange:sender.markedTextRange];
+    if (!marked.length) {
+        [(UIButton *)[sender.superview viewWithTag:3] setEnabled:sender.text.length>0];
+    }
+}
+
+- (IBAction)actionDone:(UIButton *)sender {
+    UITextRange *range = [(UITextField *)[sender.superview viewWithTag:2] markedTextRange];
+    NSString *name = range?[[(UITextField *)[sender.superview viewWithTag:2] text] stringByReplacingOccurrencesOfString:[(UITextField *)[sender.superview viewWithTag:2] textInRange:range] withString:@""]:[(UITextField *)[sender.superview viewWithTag:2] text];
+    [YZHttpApiManager apiClientSubmitWithParameters:@{@"customerType": @([(UISegmentedControl *)[sender.superview viewWithTag:1] selectedSegmentIndex]),
+                                                      @"customerName": name,
+                                                      @"identifyType": ![(UISegmentedControl *)[sender.superview viewWithTag:1] selectedSegmentIndex]?@(1):@(10),
+                                                      @"id"          : @"",
+                                                      @"identifyNo"  : @"",
+                                                      @"phoneNo"     : @"",
+                                                      @"email"       : @"",
+                                                      @"age"         : @(0),
+                                                      @"gender"      : @(0),
+                                                      @"address"     : @"",
+                                                      @"memo"        : @""}
+                                  completionHandler:^(id response, NSError *error) {
+                                      [(UITextField *)[sender.superview viewWithTag:2] setText:@""];
+                                      sender.enabled = NO;
+                                      
+                                      if (_type == YZClientListTypeProduct) {
+                                          YZClientModel *client = [[YZClientModel alloc] init];
+                                          client.customerType = [(UISegmentedControl *)[sender.superview viewWithTag:1] selectedSegmentIndex];
+                                          client.customerName =  name;
+                                          _selectClientBlock(client);
+                                          [self.navigationController popViewControllerAnimated:YES];
+                                      }
+                                      else if (_type == YZClientListTypeMine) {
+                                          [self apiManager];
+                                      }
+                                  }];
+}
+
+
+#pragma mark - segue
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"segue_client_view"]) {
+        NSInteger i = [self.tableView indexPathForCell:sender].row;
+        if (_viewSearchBackground.superview) {
+            [(YZClientViewVC *)segue.destinationViewController setClient:_arrSearchResult[i]];
+        }
+        else {
+            [(YZClientViewVC *)segue.destinationViewController setClient:_arrClient[i]];
+        }
+        [(YZClientViewVC *)segue.destinationViewController setSubmitClientBlock:^{
+            [self apiManager];
+        }];
+        [(YZClientViewVC *)segue.destinationViewController setArrTypePersonIdentify:_arrTypePersonIdentify];
+        [(YZClientViewVC *)segue.destinationViewController setArrTypeOrgIdentify:_arrTypeOrgIdentify];
+    }
+}
+
+@end

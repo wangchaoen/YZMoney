@@ -1,0 +1,27 @@
+//
+//  DataManager.h
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/2/27.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import "YZUserModel.h"
+
+#define S_W ([DataManager sharedManager].w)
+#define S_H ([DataManager sharedManager].h)
+
+@interface DataManager : NSObject
+
+@property (nonatomic, copy) NSString *deviceToken;
+@property (nonatomic, assign) CGFloat w;
+@property (nonatomic, assign) CGFloat h;
+@property (nonatomic, strong) NSMutableDictionary *productDic;
+@property (nonatomic, copy) NSArray *cookieArray;
+@property (nonatomic, copy) NSString *userAgent;
+@property (nonatomic, strong) YZUserModel *user;
+
+
++ (DataManager *)sharedManager;
+@end

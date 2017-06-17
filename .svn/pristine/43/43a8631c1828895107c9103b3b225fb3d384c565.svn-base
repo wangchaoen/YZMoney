@@ -1,0 +1,32 @@
+//
+//  YZConntractSearchVC.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/27.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZConntractSearchVC.h"
+
+@interface YZConntractSearchVC ()
+
+@end
+
+@implementation YZConntractSearchVC
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:YES animated:YES];
+}
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
+
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+}
+
+
+
+@end

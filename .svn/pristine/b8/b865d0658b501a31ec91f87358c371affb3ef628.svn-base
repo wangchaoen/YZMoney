@@ -1,0 +1,41 @@
+//
+//  YZContractController.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/11.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZContractController.h"
+#import "YZContractView.h"
+#import "YZConTitleView.h"
+
+@interface YZContractController ()
+@property (nonatomic, strong)YZConTitleView *titleView;
+@property (nonatomic, strong) YZContractView *contentView;
+@end
+
+@implementation YZContractController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.navigationItem.title = @"合同申请";
+    self.view.backgroundColor = [UIColor whiteColor];
+    [self.view addSubview:self.titleView];
+    [self.view addSubview:self.contentView];
+}
+- (YZConTitleView *)titleView {
+    if (!_titleView) {
+        _titleView = [[YZConTitleView alloc]initWithFrame:CGRectMake(0, 64, S_W, 40)];
+        _titleView.backgroundColor = [UIColor whiteColor];
+    }
+    return _titleView;
+}
+- (YZContractView *)contentView {
+    if (!_contentView) {
+        _contentView = [[YZContractView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(_titleView.frame), S_W, S_H - 40)];
+    }
+    return _contentView;
+}
+
+@end

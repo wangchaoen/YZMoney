@@ -1,0 +1,77 @@
+//
+//  YZBaseModel.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/5.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZBaseModel.h"
+#import <objc/runtime.h>
+
+
+
+
+
+@implementation YZBaseModel
+
+- (id)modelFromJson:(id)json {
+    unsigned int outCount, i;
+    objc_property_t *properties = class_copyPropertyList([self class], &outCount);
+    for (i = 0; i < outCount; i++) {
+        objc_property_t property = properties[i];
+        NSString *propertyName  = [NSString stringWithUTF8String:property_getName(property)];
+        NSString *attributeName = [NSString stringWithUTF8String:property_getAttributes(property)];
+        if ([json isKindOfClass:[NSString class]]) {
+            return self;
+        }
+        if (![json valueForKey:propertyName]) {
+            if ([attributeName containsString:@"NSString"]) {
+                [self setValue:@"" forKey:propertyName];
+            }
+            else if ([attributeName containsString:@"NSDictionary"]) {
+                [self setValue:[NSDictionary dictionary] forKey:propertyName];
+            }
+            else if ([attributeName containsString:@"NSArray"]) {
+                [self setValue:[NSArray array] forKey:propertyName];
+            }
+            
+            if ([propertyName isEqualToString:@"ID"] && json[@"id"]) {
+                [self setValue:json[@"id"] forKey:propertyName];
+            }
+        }
+        else if ([json valueForKey:propertyName]) {
+            [self setValue:[json valueForKey:propertyName] forKey:propertyName];
+        }
+    }
+    
+    return self;
+}
+
+
+#pragma mark - nscoding
+
+- (void)encodeWithCoder:(NSCoder *)aCoder{
+    unsigned int outCount = 0;
+    Ivar *vars = class_copyIvarList([self class], &outCount);
+    for (int i = 0; i < outCount; i ++) {
+        NSString *key = [NSString stringWithUTF8String:ivar_getName(vars[i])];
+        id value = [self valueForKey:key];
+        [aCoder encodeObject:value forKey:key];
+    }
+}
+
+- (nullable instancetype)initWithCoder:(NSCoder *)aDecoder{
+    if (self = [super init]) {
+        unsigned int outCount = 0;
+        Ivar *vars = class_copyIvarList([self class], &outCount);
+        for (int i = 0; i < outCount; i ++) {
+            NSString *key = [NSString stringWithUTF8String:ivar_getName(vars[i])];
+            id value = [aDecoder decodeObjectForKey:key];
+            [self setValue:value forKey:key];
+        }
+    }
+    return self;
+}
+
+@end

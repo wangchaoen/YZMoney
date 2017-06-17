@@ -1,0 +1,45 @@
+//
+//  YZContractView.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/11.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZContractView.h"
+
+@interface YZContractView ()<UIScrollViewDelegate>
+
+@end
+
+@implementation YZContractView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        for (int i = 0; i < 2; i++) {
+            UITableView *table = [[UITableView alloc]initWithFrame:CGRectMake(i * S_W, 0, S_W, self.frame.size.height)];
+            table.tag = i;
+            [self addSubview:table];
+        }
+        self.contentSize = CGSizeMake(S_W * 2, 0);
+        self.pagingEnabled = YES;
+        self.showsVerticalScrollIndicator = NO;
+        self.showsHorizontalScrollIndicator = NO;
+        self.delegate = self;
+    }
+    return self;
+}
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    if (![scrollView isKindOfClass:[UITableView class]]) {
+        //    scrollView.contentOffset.x
+    }
+}
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    
+}
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+    
+}
+@end

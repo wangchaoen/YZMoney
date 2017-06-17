@@ -1,0 +1,86 @@
+//
+//  YZAddNumberView.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/27.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZAddNumberView.h"
+
+@interface YZAddNumberView () <UITextFieldDelegate>
+
+@end
+
+@implementation YZAddNumberView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        [self creatView];
+    }
+    return self;
+}
+- (void)creatView {
+    [self addSubview:self.addBut];
+    [self addSubview:self.deleteBut];
+    [self addSubview:self.textField];
+}
+
+- (UIButton *)addBut {
+    if (!_addBut) {
+        _addBut = [UIButton buttonWithType:UIButtonTypeCustom];
+    
+        _addBut.frame = CGRectMake(self.frame.size.width - self.frame.size.height, 0, self.frame.size.height, self.frame.size.height);
+
+        [_addBut setTitle:@"+" forState:UIControlStateNormal];
+        [_addBut setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [_addBut addTarget:self action:@selector(addAction:) forControlEvents:UIControlEventTouchUpInside];
+
+        _addBut.titleLabel.font = MidFont;
+        _addBut.backgroundColor = YZ_GRAY_COLOR;
+    }
+    return _addBut;
+}
+- (UIButton *)deleteBut {
+    if (!_deleteBut) {
+        _deleteBut = [UIButton buttonWithType:UIButtonTypeCustom];
+        _deleteBut.frame = CGRectMake(0, 0, self.frame.size.height, self.frame.size.height);
+        [_deleteBut setTitle:@"-" forState:UIControlStateNormal];
+        [_deleteBut setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [_deleteBut addTarget:self action:@selector(deleteAction:) forControlEvents:UIControlEventTouchUpInside];
+        _deleteBut.titleLabel.font = MidFont;
+        _deleteBut.backgroundColor = YZ_GRAY_COLOR;
+
+    }
+    return _deleteBut;
+}
+- (UITextField *)textField {
+    if (!_textField) {
+        _textField = [[UITextField alloc]initWithFrame:CGRectMake(CGRectGetMaxX(_deleteBut.frame), 0, self.frame.size.width - CGRectGetWidth(_addBut.frame) * 2, self.frame.size.height)];
+        _textField.font = MinFont;
+        _textField.text = @"1";
+        _textField.delegate = self;
+        _textField.textAlignment = NSTextAlignmentCenter;
+        _textField.keyboardType = UIKeyboardTypeNumberPad;
+    }
+    return _textField;
+}
+- (void)deleteAction:(UIButton *)but {
+    if ([self.textField.text integerValue] > 1) {
+        NSInteger i = [self.textField.text integerValue] - 1;
+        self.textField.text = [NSString stringWithFormat:@"%ld", (long)i];
+    }
+}
+- (void)addAction:(UIButton *)but {
+    NSInteger i =  [self.textField.text integerValue] + 1;
+    self.textField.text = [NSString stringWithFormat:@"%ld", (long)i];
+}
+
+- (void)textFieldDidEndEditing:(UITextField *)textField {
+    if ([textField.text integerValue] <= 0) {
+        textField.text = @"1";
+    }
+}
+@end

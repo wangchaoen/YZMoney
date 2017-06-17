@@ -1,0 +1,155 @@
+//
+//  YZNewsDetailVC.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/16.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZNewsDetailVC.h"
+#import "YZProductDetailVC.h"
+#import "YZActionSheet.h"
+#import "YZNewsModel.h"
+#import "UIWebView+Https.h"
+
+
+
+
+
+@interface YZNewsDetailVC () <UIWebViewDelegate>
+
+@property (weak, nonatomic) IBOutlet UIWebView *webView;
+
+@property (nonatomic, strong) YZNewsModel *news;
+@property (nonatomic, strong) UIView *viewProgress;
+
+@end
+
+
+
+
+
+@implementation YZNewsDetailVC
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    self.webView.delegate = self;
+}
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    self.webView.delegate = nil;
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+   
+    if (!_idNews) {
+        self.navigationItem.rightBarButtonItem = nil;
+    }
+
+    if (![[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"weixin://"]] || [_url containsString:@"aboutUs"] || [_url containsString:@"agreement"] || [_url containsString:@"overseas"] || [_url containsString:@"questionnaire"]) {
+        self.navigationItem.rightBarButtonItem = nil;
+    }
+    
+    if (_url) {
+        NSArray *arr = [[NSURL URLWithString:_url].query componentsSeparatedByString:@"&"];
+        for (NSString *str in arr) {
+            if ([str containsString:@"id"]) {
+                _idNews = [str substringFromIndex:3];
+            }
+        }
+    }
+
+    NSString *url = _idNews ? [NSString stringWithFormat:@"%@article/detail?id=%@&linkType=article", url_base, _idNews] : _url;
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
+    [request setValue:@"client" forHTTPHeaderField:@"platform"];
+    if ([DataManager sharedManager].deviceToken) {
+        [request setValue:[DataManager sharedManager].deviceToken forHTTPHeaderField:@"umengDeviceToken"];
+    }
+    [_webView loadHttpsRequest:request];
+    
+    _viewProgress = [[UIView alloc] initWithFrame:CGRectMake(0.0f, 64.0f, CGRectGetWidth(self.view.frame)/5, 4.0f)];
+    _viewProgress.backgroundColor = YZ_RED_COLOR;
+    [self.view addSubview:_viewProgress];
+}
+
+#pragma mark - webview
+
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
+    NSString *str = request.URL.absoluteString;
+
+    if ([str containsString:@"aboutUs"] || [str containsString:@"agreement"] || [str containsString:@"overseas"] || [str containsString:@"questionnaire"]) {
+        return YES;
+    }
+
+    if ([str containsString:@"productId"]) {
+                [self performSegueWithIdentifier:@"segue_news_product" sender:request.URL.absoluteString];
+        return NO;
+    }
+    if (![str containsString:@"linkType"]) {
+        [[UIApplication sharedApplication] openURL:request.URL];
+        return NO;
+    }
+    return YES;
+}
+
+- (void)webViewDidFinishLoad:(UIWebView *)webView {
+    if (self.title.length <= 0) {
+        self.title = [webView stringByEvaluatingJavaScriptFromString:@"document.title"];
+    }
+//    self.navigationController.navigationBar.tintColor = YZ_BLUE_COLOR;
+    self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+
+    [self progressViewFinish];
+}
+
+- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
+    WEAK_SELF;
+    [YZViewManager viewManagerWithView:_webView
+                                  data:nil
+                                 error:error
+                                 block:^(){
+                                     [weakSelf progressViewFinish];
+                                 }];
+}
+
+#pragma mark - Utils 
+- (void)progressViewFinish {
+    WEAK_SELF;
+    [UIView animateWithDuration:0.3f
+                     animations:^{
+                         weakSelf.viewProgress.frame = CGRectMake(0.0f, 64.0f, CGRectGetWidth(weakSelf.view.frame), 4.0f);
+                     }
+                     completion:^(BOOL finished) {
+                         [weakSelf.viewProgress removeFromSuperview];
+                     }];
+}
+#pragma mark - action
+
+- (IBAction)actionShare:(UIBarButtonItem *)sender {
+    if (!ISLOGIN) {
+        [Utility goLogin];
+        return;
+    }
+    [YZHttpApiManager apiNewsDetailWithParameters:@{@"id": _idNews}
+                                completionHandler:^(id response, NSError *error) {
+                                    
+                                    _news = [[[YZNewsModel alloc] init] modelFromJson:[response valueForKeyPath:@"data.articleData"]];
+    
+                                    YZActionSheet *as = [[YZActionSheet alloc] initWithID:nil
+                                                                                  arrMore:nil
+                                                                                 arrShare:@[@"微信好友", @"朋友圈"]];
+                                    as.shareUrl = _news.shareUrl;
+                                    as.shareTitle = self.title;
+                                    as.shareContent = self.title;
+                                    as.shareImage = [UIImage imageNamed:@"80.png"];
+                                    [as show];
+                                }];
+}
+
+#pragma mark - segue
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"segue_news_product"]) {
+        [(YZProductDetailVC *)segue.destinationViewController setUrl:sender];
+    }
+}
+
+@end

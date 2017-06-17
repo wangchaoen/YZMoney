@@ -1,0 +1,123 @@
+//
+//  YZHttpApiManager.h
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/5.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import "YZHttpClient.h"
+
+
+
+
+
+@interface YZHttpApiManager : NSObject
+
+#pragma mark - APPDelegate
++ (void)apiWChatIDWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+#pragma mark - user
++ (void)apiUserWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiUserEditWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+
+#pragma mark - register & login & logout & password
++ (void)apiCodeWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiCodeCenterWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiCodePasswordWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiRegisterWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiLoginWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiLogoutWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiDoPasswordWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiUpPasswordWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiCheckCodeWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+
+#pragma mark - index
++ (void)apiIndexWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiHotProductWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+
+#pragma mark - product
++ (void)apiProductCategoryWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiProductListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiProductConditionWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiProductWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiProductProfitWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiProductAppointWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiProductEmailWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiProductIsFavoriteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiProductFavoriteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiProductDocumentWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+
+#pragma mark - news
++ (void)apiNewsCategoryWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiNewsListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiNewsDetailWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+
+#pragma mark - search
++ (void)apiSearchCategoryHotAndLabelWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiSearchCategorySearchCompanyWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiSearchCategorySearchLabelWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiSearchCategoryWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiSearchListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
++ (void)apiSearchLenovoWordWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+#pragma mark - client
++ (void)apiClientDetailWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiClientListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiClientSubmitWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiClientDeleteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiClientSearchWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+
+#pragma mark - mine
++ (void)apiMineUserFeedBackWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineGetUserStatusWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineAppointListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineAppointDetailWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineAppointPictureWithParameters:(id)parameters data:(id)file completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineAppointSearchWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineAppointConditionWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineAppointImageDeleteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineFavoriteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineSurveyWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineServiceWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiMineServiceSubmitWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+//合同提交
++ (void)apiMineSubmitContractWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+//获取默认地址
++ (void)apiMineContractGetDefaultAddressWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+//合同地址列表
++ (void)apiMineContractAddressListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+//删除地址
++ (void)apiMineContractAddressRemoveWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+// 创建新地址
++ (void)apiMineContractAddAddressWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+// 修改地址
++ (void)apiMineContractEditorAddressWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+//查看进度
++ (void)apiMineContractLookProgressWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+//提交认证
++ (void)apiMineSubmitCertificationWithParameters:(id)parameters data:(id)data completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+#pragma mark - order
++ (void)apiOrderCancelBookingWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiOrderCancelOrderWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiOrderDeleteBookingWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiOrderOrderSubmitWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+
+#pragma mark - other
++ (void)apiConfigureWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiBootadWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
++ (void)apiSurveyWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler;
+
+@end

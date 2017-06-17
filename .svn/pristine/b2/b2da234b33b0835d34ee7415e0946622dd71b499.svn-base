@@ -1,0 +1,98 @@
+//
+//  AddImageCell.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/3/1.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+#import "YZLoadImModel.h"
+#import "AddImageCell.h"
+
+@interface AddImageCell ()
+@property (nonatomic, strong) NSMutableArray *imageArr;
+@property (nonatomic, strong) NSIndexPath *index;
+@end
+
+@implementation AddImageCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier  {
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        self.imageArr = [NSMutableArray array];
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
+        CGFloat interval = (S_W - 110 * 2) / 3;
+
+        UILabel *lbl = [[UILabel alloc]initWithFrame:CGRectMake(interval, 5, S_W / 2 - 15, 20)];
+        self.titleLbl = lbl;
+        lbl.font = MidFont;
+        [self.contentView addSubview:lbl];
+    }
+    return self;
+}
+- (void)sendArrayCreatViewIndex:(NSIndexPath *)index imageArr:(NSArray *)imageArr {
+    self.index = index;
+    for (UIView *view in self.imageArr) {
+        if (view.superview) {
+            [view removeFromSuperview];
+        }
+    }
+//    CGFloat interval = 15;
+//    CGFloat width = (S_W - interval * 3) / 2;
+//    CGFloat height = width / 8 * 5;
+    CGFloat interval = (S_W - 110 * 2) / 3;
+    CGFloat width = 110;
+    CGFloat height = 110;
+
+    [self.imageArr removeAllObjects];
+    NSInteger count = 0;
+    if (self.isShowAddImage) {
+        count = imageArr.count + 1;
+    }else {
+        count = imageArr.count;
+    }
+    for (int i = 0; i < count; i++) {
+        UIImageView *image = [[UIImageView alloc]initWithFrame:CGRectMake(interval + (width + interval) * (i % 2), 40 + (height + 20) * (i / 2), width, height)];
+        image.userInteractionEnabled = true;
+        if (i == imageArr.count) {
+            self.lastImage = image;
+            if (self.isShowAddImage) {
+                UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
+                [image addGestureRecognizer:tap];
+            }
+        }else {
+            if ([imageArr[i] isKindOfClass:[UIImage class]]) {
+                image.image = imageArr[i];
+            }else {
+                YZLoadImModel *model = imageArr[i];
+                NSString *url = [NSString stringWithFormat:@"%@image/order?id=%@&memberId=%@", url_base, model.ID, yz_user.detail[@"memberId"]];
+                [image sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:nil];
+            }
+            if (self.isShowAddImage) {
+                UILongPressGestureRecognizer *longTap = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(longtapAction:)];
+                longTap.minimumPressDuration = 1;
+                [image addGestureRecognizer:longTap];
+            }
+        }
+        if (self.isAddTap) {
+            UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
+            [image addGestureRecognizer:tap];
+        }
+        image.tag = i;
+        image.contentMode = UIViewContentModeScaleAspectFit;
+        [self.contentView addSubview:image];
+        [self.imageArr addObject:image];
+    }
+}
+
+- (void)tapAction:(UITapGestureRecognizer *)tap {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(addImageDelegateImage:index:)]) {
+        [self.delegate addImageDelegateImage:tap.view index:self.index];
+    }
+}
+- (void)longtapAction:(UITapGestureRecognizer *)longTap {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(addImageLongTap:index:)]) {
+        [self.delegate addImageLongTap:longTap.view index:self.index];
+    }
+}
+
+@end

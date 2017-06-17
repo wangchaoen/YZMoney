@@ -1,0 +1,50 @@
+//
+//  YZUserModel.h
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/5.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZBaseModel.h"
+
+
+
+
+
+@interface YZUserModel : YZBaseModel
+
+@property (nonatomic, copy) NSString *ID;
+@property (nonatomic, copy) NSString *clientIp;
+@property (nonatomic, copy) NSString *cusServiceNum;
+@property (nonatomic, copy) NSString *headerUrl;
+@property (nonatomic, copy) NSString *hiddenEmail;
+@property (nonatomic, copy) NSString *hiddenMobile;
+@property (nonatomic, copy) NSString *inviter;
+@property (nonatomic, copy) NSString *inviterId;
+@property (nonatomic, copy) NSString *nickname;
+@property (nonatomic, copy) NSString *openId;
+@property (nonatomic, copy) NSString *password;
+@property (nonatomic, copy) NSString *redirectUrl;
+@property (nonatomic, copy) NSString *username;
+@property (nonatomic, copy) NSString *wxNickName;
+
+@property (nonatomic, assign) NSInteger checkCodeIsValid;
+@property (nonatomic, assign) NSInteger checkCodeSendDate;
+@property (nonatomic, assign) NSInteger fromType;
+@property (nonatomic, assign) NSInteger isLocked;
+@property (nonatomic, assign) NSInteger isValid;
+@property (nonatomic, assign) NSInteger loginFailCount;
+@property (nonatomic, assign) NSInteger memberType;
+@property (nonatomic, assign) NSTimeInterval createDate;
+@property (nonatomic, assign) NSTimeInterval modifyDate;
+
+@property (nonatomic, strong) NSDictionary *detail;
+@property (nonatomic, strong) NSDictionary *phoneNo;
+@property (nonatomic, strong) NSDictionary *email;
+
+#pragma mark - 自己加的
+//头像
+@property (nonatomic, copy) UIImage *iconImage;
+
+@end

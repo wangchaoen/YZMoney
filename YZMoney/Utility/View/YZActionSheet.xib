@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11762" systemVersion="16C67" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="YZActionSheet">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="B5e-L1-nkA">
+                    <rect key="frame" x="10" y="677" width="355" height="160"/>
+                    <subviews>
+                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Asx-il-Zh5">
+                            <rect key="frame" x="0.0" y="0.0" width="355" height="80"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="80" id="t1e-45-sml"/>
+                            </constraints>
+                        </scrollView>
+                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Zdo-oC-fXI">
+                            <rect key="frame" x="0.0" y="80" width="355" height="80"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="80" id="5dk-Lk-YWl"/>
+                            </constraints>
+                        </scrollView>
+                    </subviews>
+                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <constraints>
+                        <constraint firstAttribute="trailing" secondItem="Zdo-oC-fXI" secondAttribute="trailing" id="88h-Wq-Fzh"/>
+                        <constraint firstItem="Zdo-oC-fXI" firstAttribute="top" secondItem="Asx-il-Zh5" secondAttribute="bottom" id="93H-iy-ojo"/>
+                        <constraint firstAttribute="trailing" secondItem="Asx-il-Zh5" secondAttribute="trailing" id="ACd-t1-JBZ"/>
+                        <constraint firstItem="Asx-il-Zh5" firstAttribute="leading" secondItem="B5e-L1-nkA" secondAttribute="leading" id="NFe-xX-EXw"/>
+                        <constraint firstAttribute="bottom" secondItem="Asx-il-Zh5" secondAttribute="bottom" priority="750" id="VKk-Vl-lGh"/>
+                        <constraint firstItem="Zdo-oC-fXI" firstAttribute="top" secondItem="B5e-L1-nkA" secondAttribute="top" priority="750" id="WMH-Po-3D7"/>
+                        <constraint firstItem="Zdo-oC-fXI" firstAttribute="leading" secondItem="B5e-L1-nkA" secondAttribute="leading" id="bG5-SH-e2F"/>
+                        <constraint firstItem="Asx-il-Zh5" firstAttribute="top" secondItem="B5e-L1-nkA" secondAttribute="top" id="tkz-Er-Btc"/>
+                        <constraint firstAttribute="bottom" secondItem="Zdo-oC-fXI" secondAttribute="bottom" id="u7y-wZ-Yyn"/>
+                    </constraints>
+                    <userDefinedRuntimeAttributes>
+                        <userDefinedRuntimeAttribute type="boolean" keyPath="layer.masksToBounds" value="YES"/>
+                        <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                            <integer key="value" value="10"/>
+                        </userDefinedRuntimeAttribute>
+                    </userDefinedRuntimeAttributes>
+                </view>
+            </subviews>
+            <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.0" colorSpace="custom" customColorSpace="sRGB"/>
+            <gestureRecognizers/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="B5e-L1-nkA" secondAttribute="trailing" constant="10" id="O6Z-16-LaQ"/>
+                <constraint firstItem="B5e-L1-nkA" firstAttribute="centerX" secondItem="iN0-l3-epB" secondAttribute="centerX" id="QV4-d1-YbX"/>
+                <constraint firstItem="B5e-L1-nkA" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" constant="10" id="QsU-Qe-jC8"/>
+                <constraint firstAttribute="bottom" secondItem="B5e-L1-nkA" secondAttribute="bottom" constant="-170" id="XjE-2S-U4x"/>
+            </constraints>
+            <connections>
+                <outlet property="constraintBottom" destination="XjE-2S-U4x" id="FWg-T0-1nr"/>
+                <outlet property="svCommon" destination="Asx-il-Zh5" id="0FY-5e-4Ef"/>
+                <outlet property="svShare" destination="Zdo-oC-fXI" id="Odc-H7-mcB"/>
+            </connections>
+            <point key="canvasLocation" x="382.5" y="339.5"/>
+        </view>
+    </objects>
+</document>

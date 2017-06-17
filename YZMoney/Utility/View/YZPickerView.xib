@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11762" systemVersion="16C67" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB" customClass="YZPickerView">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="D0D-YS-Hxa">
+                    <rect key="frame" x="0.0" y="667" width="375" height="44"/>
+                    <items>
+                        <barButtonItem width="12" style="plain" systemItem="fixedSpace" id="vom-Vx-znd"/>
+                        <barButtonItem title="取消" id="rxQ-vx-dVd">
+                            <connections>
+                                <action selector="actionCancel:" destination="iN0-l3-epB" id="nCh-9X-YHZ"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem style="plain" systemItem="flexibleSpace" id="nhB-LV-yEX"/>
+                        <barButtonItem title="确定" id="zWa-tf-64Q">
+                            <connections>
+                                <action selector="actionDone:" destination="iN0-l3-epB" id="wtP-8N-bVM"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem width="12" style="plain" systemItem="fixedSpace" id="Mqw-yj-6qH"/>
+                    </items>
+                    <color key="barTintColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                </toolbar>
+                <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lRL-Ts-br9">
+                    <rect key="frame" x="0.0" y="711" width="375" height="216"/>
+                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    <connections>
+                        <outlet property="dataSource" destination="iN0-l3-epB" id="lue-NL-dHf"/>
+                        <outlet property="delegate" destination="iN0-l3-epB" id="Nmc-at-T3I"/>
+                    </connections>
+                </pickerView>
+            </subviews>
+            <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.40409482758620691" colorSpace="custom" customColorSpace="sRGB"/>
+            <gestureRecognizers/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="D0D-YS-Hxa" secondAttribute="trailing" id="3bl-F7-WBX"/>
+                <constraint firstItem="lRL-Ts-br9" firstAttribute="top" secondItem="D0D-YS-Hxa" secondAttribute="bottom" id="8eq-9Y-GEA"/>
+                <constraint firstItem="D0D-YS-Hxa" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="92m-Ug-kYk"/>
+                <constraint firstItem="lRL-Ts-br9" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" id="h1N-Ct-7v3"/>
+                <constraint firstAttribute="trailing" secondItem="lRL-Ts-br9" secondAttribute="trailing" id="uFg-XE-lhg"/>
+                <constraint firstAttribute="bottom" secondItem="lRL-Ts-br9" secondAttribute="bottom" constant="-260" id="ug2-gV-trk"/>
+            </constraints>
+            <connections>
+                <outlet property="constraintBottom" destination="ug2-gV-trk" id="cAz-pT-oQ0"/>
+                <outlet property="picker" destination="lRL-Ts-br9" id="aqc-NL-mZf"/>
+            </connections>
+        </view>
+    </objects>
+</document>

@@ -1,0 +1,174 @@
+//
+//  UIViewController+Swizzled.m
+//
+//  Created by Rui Peres on 12/08/2013.
+//  Copyright (c) 2013 Rui Peres. All rights reserved.
+//
+
+#import "UIViewController+Swizzled.h"
+#import <objc/runtime.h>
+#import "Growing.h"
+#import "UIImage+ImageWithColor.h"
+#import "YZSearchVC.h"
+#import "YZNewsSearchVC.h"
+
+
+@implementation UIViewController (Swizzled)
+
+// Poor's man flag. Used to know if the methods are already Swizzed
+static BOOL isSwizzed;
+
+static NSString *logTag = @"";
+
++ (void)load {
+    isSwizzed = NO;
+}
+
+#pragma mark - Util methods
+static void swizzInstance(Class class, SEL originalSelector, SEL swizzledSelector) {
+    Method originalMethod = class_getInstanceMethod(class, originalSelector);
+    Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
+    
+    BOOL didAddMethod =
+    class_addMethod(class, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod));
+    
+    if (didAddMethod) {
+        class_replaceMethod(class, swizzledSelector, method_getImplementation(originalMethod),method_getTypeEncoding(originalMethod));
+    } else {
+        method_exchangeImplementations(originalMethod, swizzledMethod);
+    }
+}
+
+- (void)logWithLevel:(NSUInteger)level {
+    NSString *paddingItems = @"";
+    for (NSUInteger i = 0; i<=level; i++) {
+        paddingItems = [paddingItems stringByAppendingFormat:@"--"];
+    }
+    NSLog(@"%@%@-> %@", logTag, paddingItems, [self.class description]);
+}
+
+#pragma mark - SwizzMethods
+- (void)printPath {
+    if ([self parentViewController] == nil) {
+        [self logWithLevel:0];
+    } else if([[self parentViewController] isMemberOfClass:[UINavigationController class]]) {
+        UINavigationController *nav = (UINavigationController *)[self parentViewController];
+        NSInteger integer = [[nav viewControllers] indexOfObject:self];
+        [self logWithLevel:integer];
+    } else if ([[self parentViewController] isMemberOfClass:[UITabBarController class]]) {
+        [self logWithLevel:1];
+    }
+}
+
+- (void)swizzviewDidAppear:(BOOL)animated {
+    [self printPath];
+    [self swizzviewDidAppear:animated];
+}
+
+- (void)swizzviewWillAppear:(BOOL)animated {
+    [self swizzviewWillAppear:animated];
+    if (![self isKindOfClass:[UINavigationController class]] && ![self isKindOfClass:[UITabBarController class]]) {
+//        self.growingAttributesPageName = NSStringFromClass([self class]);
+        [MobClick beginLogPageView:NSStringFromClass([self class])];
+    }
+}
+
+- (void)swizzviewWillDisappear:(BOOL)animated {
+    [self swizzviewWillDisappear:animated];
+    if (![self isKindOfClass:[UINavigationController class]] && ![self isKindOfClass:[UITabBarController class]]) {
+        [MobClick endLogPageView:NSStringFromClass([self class])];
+    }
+}
+
+- (void)changeNavColor:(UIColor *)color {
+    UIImage *backImg = [UIImage imageWithColor:color];
+    [self.navigationController.navigationBar setBackgroundImage:backImg
+                                                 forBarPosition:UIBarPositionAny
+                                                     barMetrics:UIBarMetricsDefault];
+    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+}
+- (void)swizzviewDidLoad {
+    [self swizzviewDidLoad];
+    self.navigationController.navigationBar.barStyle = UIBarStyleDefault;
+    self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+    
+    self.navigationController.navigationBar.barTintColor = YZ_RED_COLOR;
+    [self.navigationController.navigationBar setShadowImage:[UIImage new]];
+    [self.navigationController.navigationBar setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIColor whiteColor], NSForegroundColorAttributeName,[UIFont systemFontOfSize:18], NSFontAttributeName,nil]];
+    
+    if ([self isKindOfClass:[YZSearchVC class]] || [self isKindOfClass:[YZNewsSearchVC class]]) {
+
+    }else {
+        [self.navigationController setNavigationBarHidden:NO animated:YES];
+        [self changeNavColor:YZ_RED_COLOR];
+        [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;
+        self.navigationController.navigationBar.barStyle = UIBarStyleBlack;
+    }
+
+//        [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+//        [[UIApplication sharedApplication] setStatusBarOrientation:UIInterfaceOrientationPortrait animated: NO];
+//    }
+    UIBarButtonItem *backItem = [[UIBarButtonItem alloc] init];
+    backItem.title = @"";
+    self.navigationItem.backBarButtonItem = backItem;
+    
+
+}
+
+- (BOOL)swizzshouldAutorotate {
+//    if ([self isKindOfClass:[Game1ViewController class]] || [self isKindOfClass:[Game1PlayViewController class]]) {
+//        return YES;
+//    }
+    return NO;
+}
+
+- (UIInterfaceOrientationMask)swizzsupportedInterfaceOrientations {
+//    if ([self isKindOfClass:[Game1ViewController class]] || [self isKindOfClass:[Game1PlayViewController class]]) {
+//        return UIInterfaceOrientationMaskLandscape;
+//    }
+    return UIInterfaceOrientationMaskPortrait;
+}
+
+//- (UIInterfaceOrientation)swizzpreferredInterfaceOrientationForPresentation {
+//    if ([self isKindOfClass:[Game1ViewController class]] || [self isKindOfClass:[Game1PlayViewController class]]) {
+//        return UIInterfaceOrientationLandscapeRight;
+//    }
+//    return [self swizzpreferredInterfaceOrientationForPresentation];
+//}
+
+#pragma mark - Public methods
++ (void)swizzIt {
+    // We won't do anything if it's already swizzed
+    if (isSwizzed) {
+        return;
+    }
+    swizzInstance([self class], @selector(viewWillAppear:), @selector(swizzviewWillAppear:));
+    swizzInstance([self class], @selector(viewWillDisappear:), @selector(swizzviewWillDisappear:));
+    swizzInstance([self class], @selector(viewDidLoad), @selector(swizzviewDidLoad));
+    swizzInstance([self class], @selector(shouldAutorotate), @selector(swizzshouldAutorotate));
+    swizzInstance([self class], @selector(supportedInterfaceOrientations), @selector(swizzsupportedInterfaceOrientations));
+//    swizzInstance([self class], @selector(preferredInterfaceOrientationForPresentation), @selector(swizzpreferredInterfaceOrientationForPresentation));
+    
+    isSwizzed = YES;
+}
+
++ (void)swizzItWithTag:(NSString *)tag {
+    logTag = tag;
+    [self swizzIt];
+}
+
++ (void)undoSwizz {
+    // We won't do anything if it has not been Swizzed
+    if (!isSwizzed) {
+        return;
+    }
+    isSwizzed = NO;
+//    swizzInstance([self class], @selector(swizzviewWillAppear:), @selector(viewWillAppear:));
+//    swizzInstance([self class], @selector(swizzviewWillDisappear:), @selector(viewWillDisappear:));
+//    swizzInstance([self class], @selector(swizzviewDidLoad), @selector(viewDidLoad));
+//    swizzInstance([self class], @selector(swizzshouldAutorotate), @selector(shouldAutorotate));
+//    swizzInstance([self class], @selector(swizzsupportedInterfaceOrientations), @selector(supportedInterfaceOrientations));
+//    swizzInstance([self class], @selector(swizzpreferredInterfaceOrientationForPresentation), @selector(preferredInterfaceOrientationForPresentation));
+}
+
+@end

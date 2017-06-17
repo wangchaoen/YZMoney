@@ -1,0 +1,29 @@
+//
+//  YZJsonBaseModel.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/5/5.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZJsonBaseModel.h"
+
+@implementation YZJsonBaseModel
+- (id)initWithDict:(NSDictionary *)dict {
+    NSError *error;
+    self = [super initWithDictionary:dict error:&error];
+    if (error) {
+        NSLog(@"json to model error = %@", error);
+        return nil;
+    }
+    return self;
+}
+
++ (BOOL)propertyIsOptional:(NSString *)propertyName {
+    return YES;
+}
++ (JSONKeyMapper *)keyMapper {
+    return [[JSONKeyMapper alloc] initWithModelToJSONDictionary:@{@"id": @"ID"}];
+}
+
+@end

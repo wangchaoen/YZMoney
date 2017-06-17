@@ -1,0 +1,47 @@
+//
+//  SearchNavView.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/3/14.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "SearchNavView.h"
+
+@implementation SearchNavView
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        self.backgroundColor = [UIColor whiteColor];
+        self.backBut = [UIButton buttonWithType:UIButtonTypeCustom];
+        self.backBut.frame = CGRectMake(10, 5, 32, 32);
+        [self.backBut setImage:[UIImage imageNamed:@"back_blue_icon"] forState:UIControlStateNormal];
+        [self addSubview:self.backBut];
+        
+        UIView *line = [[UIView alloc]initWithFrame:CGRectMake(0, 43, S_W, 0.4)];
+        line.backgroundColor = [UIColor lightGrayColor];
+        [self addSubview:line];
+        
+        self.textField = [[UITextField alloc]initWithFrame:CGRectMake(CGRectGetMaxX(self.backBut.frame) + 10, 6, S_W - 140, 32)];
+        self.textField.growingAttributesDonotTrackValue = NO;
+        self.textField.clearButtonMode=UITextFieldViewModeWhileEditing;
+        self.textField.placeholder = @"请输入你想查找的产品";
+        self.textField.font = [UIFont systemFontOfSize:14];
+        self.textField.returnKeyType = UIReturnKeySearch;
+        [self addSubview:self.textField];
+        
+        self.searchBut = [UIButton buttonWithType:UIButtonTypeCustom];
+        self.searchBut.frame = CGRectMake(S_W - 65, 6, 60, 32);
+        [self.searchBut setTitle:@"搜索" forState:UIControlStateNormal];
+        self.searchBut.titleLabel.font = [UIFont systemFontOfSize:14];
+        [self.searchBut setTitleColor:YZ_RED_COLOR forState:UIControlStateNormal];
+        [self addSubview:self.searchBut];
+        
+        UIView *lineSearch = [[UIView alloc]initWithFrame:CGRectMake(CGRectGetMinX(self.searchBut.frame), 5, 0.4, 32)];
+        lineSearch.backgroundColor = [UIColor blackColor];
+        [self addSubview:lineSearch];
+    }
+    return self;
+}
+@end

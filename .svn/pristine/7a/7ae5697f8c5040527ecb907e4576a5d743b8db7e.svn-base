@@ -1,0 +1,114 @@
+//
+//  OtherSettController.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/7.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "OtherSettController.h"
+#import "YZNewsDetailVC.h"
+
+@interface OtherSettController ()<UITableViewDelegate, UITableViewDataSource>
+@property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, copy) NSArray *array;
+@property (nonatomic, copy) NSString *clearStr;
+@end
+
+@implementation OtherSettController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.clearStr = @"清除";
+    self.navigationItem.title = @"其他设置";
+    [self.view addSubview:self.tableView];
+    self.array = @[@"清理缓存", @"关于我们"];
+    self.view.backgroundColor = [UIColor whiteColor];
+}
+- (UITableView *)tableView {
+    if (!_tableView) {
+        _tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, S_W, S_H)];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        [_tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:NSStringFromClass([UITableViewCell class])];
+        _tableView.backgroundColor = YZ_GRAY_COLOR;
+        _tableView.tableFooterView = [UIView new];
+    }
+    return _tableView;
+}
+
+#pragma mark - tableViewDelegate
+//- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+//    return self.array.count;
+//}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.array.count;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 40;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 10;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([UITableViewCell class])];
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    if (indexPath.row == 1) {
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    }else {
+        for (UIView *view in cell.contentView.subviews) {
+            [view removeFromSuperview];
+        }
+        UILabel *lbl = [[UILabel alloc]initWithFrame:CGRectMake(S_W - 120, 0, 80, 40)];
+        CGFloat size = [[SDImageCache sharedImageCache] getSize] / 1000;
+        NSString *str;
+        if (size > 1000) {
+            size  = size / 1000;
+            
+            str = [NSString stringWithFormat:@"%.2fM", size];
+        }else if (size < 1000){
+            
+            str = [NSString stringWithFormat:@"%.2fK", size];
+        }
+        lbl.text = str;
+
+        lbl.font = [UIFont systemFontOfSize:12];
+        lbl.textAlignment = NSTextAlignmentRight;
+        [cell.contentView addSubview:lbl];
+        lbl.textColor = [UIColor lightGrayColor];
+    }
+    cell.textLabel.font = [UIFont systemFontOfSize:14];
+//    cell.textLabel.textColor = [UIColor lightGrayColor];
+    cell.textLabel.text = self.array[indexPath.row];
+    return cell;
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.row == 0) {
+        CGFloat size = [[SDImageCache sharedImageCache] getSize] / 1000;
+        if (size == 0) {
+            return;
+        }
+        UIAlertController *ac = [UIAlertController alertControllerWithTitle:nil
+                                                                    message:@"确认要清理缓存吗？"
+                                                             preferredStyle:UIAlertControllerStyleAlert];
+        [ac addAction:[UIAlertAction actionWithTitle:@"确定"
+                                               style:UIAlertActionStyleDefault
+                                             handler:^(UIAlertAction * _Nonnull action) {
+                                                 [[SDImageCache sharedImageCache] clearDisk];
+                                                 [[SDImageCache sharedImageCache] clearDiskOnCompletion:^{
+                                                     [self.tableView reloadData];           [YZToastView showToastWithText:@"清除缓存成功"];
+                                                 }];
+      
+                                             }]];
+        [ac addAction:[UIAlertAction actionWithTitle:@"取消"
+                                               style:UIAlertActionStyleCancel
+                                             handler:nil]];
+        [self presentViewController:ac animated:YES completion:nil];
+    }else {
+        YZNewsDetailVC *newsVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"vc_news"];
+        newsVC.title = @"关于亿金融";
+        newsVC.url = [NSString stringWithFormat:@"%@aboutUs", url_base];
+        [self.navigationController pushViewController:newsVC animated:YES];
+    }
+}
+@end

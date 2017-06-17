@@ -1,0 +1,24 @@
+PODS:
+  - IQKeyboardManager (4.0.7)
+  - MSWeakTimer (1.1.0)
+  - SDCycleScrollView (1.65):
+    - SDWebImage (~> 3.7)
+  - SDWebImage (3.8.2):
+    - SDWebImage/Core (= 3.8.2)
+  - SDWebImage/Core (3.8.2)
+
+DEPENDENCIES:
+  - IQKeyboardManager
+  - MSWeakTimer (~> 1.1.0)
+  - SDCycleScrollView (~> 1.61)
+  - SDWebImage (~> 3.7)
+
+SPEC CHECKSUMS:
+  IQKeyboardManager: 69002bb4fea60596b710e57d426abc00e5063630
+  MSWeakTimer: 9426150f933b80ed3acf3f6d228e4b61f0e303c8
+  SDCycleScrollView: f72904c77698a7f93a41bcbbc2d78b073bf7326c
+  SDWebImage: 098e97e6176540799c27e804c96653ee0833d13c
+
+PODFILE CHECKSUM: bb92a87e3050f11b314faed90fda0d5158ada5d1
+
+COCOAPODS: 1.1.1

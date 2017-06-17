@@ -1,0 +1,87 @@
+//
+//  YZToastView.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/25.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZToastView.h"
+
+
+
+
+
+@interface YZToastView ()
+
+@property (nonatomic, strong) UIView *viewToast;
+@property (nonatomic, assign) NSInteger toastCount;
+
+@end
+
+
+
+
+
+@implementation YZToastView
+
+static YZToastView *instance;
+
++ (instancetype)allocWithZone:(struct _NSZone *)zone {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        instance = [super allocWithZone:zone];
+        instance.viewToast = [[[NSBundle mainBundle] loadNibNamed:@"YZToastView" owner:nil options:nil] objectAtIndex:0];
+        instance.viewToast.center = CGPointMake(CGRectGetMidX([UIScreen mainScreen].bounds), CGRectGetMidY([UIScreen mainScreen].bounds));
+        instance.toastCount = 0;
+    });
+    return instance;
+}
+
++ (instancetype)sharedToast {
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        instance = [[self alloc] init];
+        instance.viewToast = [[[NSBundle mainBundle] loadNibNamed:@"YZToastView" owner:nil options:nil] objectAtIndex:0];
+        instance.viewToast.center = CGPointMake(CGRectGetMidX([UIScreen mainScreen].bounds), CGRectGetMidY([UIScreen mainScreen].bounds));
+        instance.toastCount = 0;
+    });
+    return instance;
+}
+
+- (void)showToast {
+    _toastCount++;
+    if (_toastCount == 1) {
+        [APPDELEGATE.window addSubview:_viewToast];
+        APPDELEGATE.window.userInteractionEnabled = NO;
+    }
+}
+
+- (void)hideToast {
+    _toastCount--;
+    if (_toastCount == 0) {
+        [_viewToast removeFromSuperview];
+        APPDELEGATE.window.userInteractionEnabled = YES;
+    }
+}
+
++ (void)showToastWithText:(NSString *)text {
+//    UIView *v = [[[NSBundle mainBundle] loadNibNamed:@"YZToastView" owner:nil options:nil] objectAtIndex:1];
+    CGSize size = [Utility calculatelblSizeForFont:16 scope:CGSizeMake(S_W / 2, MAXFLOAT) text:text];
+    UILabel *lbl = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, size.width + 30, size.height + 20)];
+    lbl.font = [UIFont systemFontOfSize:16];
+    lbl.text = text;
+    lbl.textAlignment = NSTextAlignmentCenter;
+    lbl.layer.cornerRadius = 10;
+    lbl.layer.masksToBounds = YES;
+    lbl.backgroundColor = [UIColor colorWithWhite:0 alpha:0.6];
+    lbl.textColor = [UIColor whiteColor];
+    lbl.center = CGPointMake(CGRectGetMidX([UIScreen mainScreen].bounds), CGRectGetMidY([UIScreen mainScreen].bounds));
+    [APPDELEGATE.window addSubview:lbl];
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.5f * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [lbl removeFromSuperview];
+    });
+}
+
+@end

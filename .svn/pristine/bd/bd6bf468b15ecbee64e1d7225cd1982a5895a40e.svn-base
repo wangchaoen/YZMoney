@@ -1,0 +1,96 @@
+//
+//  YZProfileVC.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/16.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZMineProfileVC.h"
+
+
+
+
+
+@interface YZMineProfileVC ()
+
+@end
+
+
+
+
+
+@implementation YZMineProfileVC
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [MobClick event:@"usercenter_profile"];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(userHasGet:)
+                                                 name:kUserHasGet
+                                               object:nil];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:kUserShouldGet object:nil];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)userHasGet:(NSNotification *)noti {
+    [self.tableView reloadData];
+}
+
+
+#pragma mark - table view
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 7;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return indexPath.row == 6 ? 160.0f : 50.0f;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [[UITableViewCell alloc] init];
+
+    switch (indexPath.row) {
+        case 0:
+            cell = [tableView dequeueReusableCellWithIdentifier:@"cell_name"];
+            [(UILabel *)[cell viewWithTag:1] setText:yz_user.nickname];
+            break;
+        case 1:
+            cell = [tableView dequeueReusableCellWithIdentifier:@"cell_mobile"];
+            [(UILabel *)[cell viewWithTag:1] setText:yz_user.phoneNo[@"value"]];
+            break;
+        case 2:
+            cell = [tableView dequeueReusableCellWithIdentifier:@"cell_email"];
+            [(UILabel *)[cell viewWithTag:1] setText:yz_user.email[@"value"]];
+            break;
+        case 3: {
+            cell = [tableView dequeueReusableCellWithIdentifier:@"cell_gender"];
+            [(UILabel *)[cell viewWithTag:1] setText:yz_user.detail[@"htmlGender"]];
+            break;
+        }
+        case 4:
+            cell = [tableView dequeueReusableCellWithIdentifier:@"cell_address"];
+            [(UILabel *)[cell viewWithTag:1] setText:yz_user.detail[@"address"]];
+            break;
+        case 5:
+            cell = [tableView dequeueReusableCellWithIdentifier:@"cell_carrer"];
+            [(UILabel *)[cell viewWithTag:1] setText:yz_user.detail[@"vocation"]];
+            break;
+        case 6:
+            cell = [tableView dequeueReusableCellWithIdentifier:@"cell_description"];
+            [(UILabel *)[cell viewWithTag:1] setText:yz_user.detail[@"description"]];
+            break;
+        default:
+            break;
+    }
+    
+    return cell;
+}
+
+@end

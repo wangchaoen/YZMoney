@@ -1,0 +1,258 @@
+//
+//  YZHttpClient.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/5.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZHttpClient.h"
+#import "AFHTTPSessionManager.h"
+#import "YZSurveyVC.h"
+
+
+
+
+
+@implementation YZHttpClient
+
+
+#pragma mark - request
+
+
++ (void)requestWithNoToastMethod:(NSString *)method
+                      url:(NSString *)url
+               parameters:(id)parameters
+        completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    
+    [YZHttpClient requestWithShowToast:NO method:method url:url parameters:parameters completionaHander:completionHandler];
+}
+
++ (void)requestWithMethod:(NSString *)method
+                      url:(NSString *)url
+               parameters:(id)parameters
+        completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithShowToast:YES method:method url:url parameters:parameters completionaHander:completionHandler];
+}
+
++ (void)requestWithShowToast:(BOOL)judge method:(NSString *)method url:(NSString *)url parameters:(id)parameters completionaHander:(void(^)(id, NSError *))completionHandler {
+    AFNetworkReachabilityManager *reachManager = [AFNetworkReachabilityManager sharedManager];
+    if(reachManager.networkReachabilityStatus == AFNetworkReachabilityStatusNotReachable) {
+        [YZToastView showToastWithText:@"当前没有网络"];
+        return;
+    }
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+
+    if (judge) {
+        [[YZToastView sharedToast] showToast];
+    }
+    [(AFJSONResponseSerializer *)manager.responseSerializer setRemovesKeysWithNullValues:YES];
+    [manager.requestSerializer setValue:[NSString stringWithFormat:@"iOS %@",[[UIDevice currentDevice] systemVersion]] forHTTPHeaderField:@"User-Agent"];
+    if ([DataManager sharedManager].deviceToken) {
+        [manager.requestSerializer setValue:[DataManager sharedManager].deviceToken forHTTPHeaderField:@"umengDeviceToken"];
+    }
+    if ([DataManager sharedManager].deviceToken) {
+        [manager.requestSerializer setValue:[NSString stringWithFormat:@"%@", [DataManager sharedManager].deviceToken] forHTTPHeaderField:@"umengDeviceToken"];
+    }
+    if ([url isEqualToString:@"checkcode"]) {
+        manager.responseSerializer = [AFImageResponseSerializer serializer];
+    }
+    //https
+    [manager setSecurityPolicy:[self customSecurityPolicyWithValidate:YES]];
+    
+    url = [url_base stringByAppendingString:url];
+    
+    if ([method isEqualToString:@"GET"]) {
+        [manager GET:url
+          parameters:parameters
+             success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+                 if (judge) {
+                     [[YZToastView sharedToast] hideToast];
+                 }
+                 if ([url containsString:@"member/info"]) {
+                     ;
+                     NSHTTPURLResponse *response = (NSHTTPURLResponse *)task.response;
+                     NSArray *cookies =[NSHTTPCookie cookiesWithResponseHeaderFields:[response allHeaderFields] forURL:response.URL];
+                     [DataManager sharedManager].cookieArray = cookies;
+                     NSLog(@"cookies ========== %@ \n\n", cookies);
+                 }
+                 NSLog(@"responseObject ======== %@\n\n\n", responseObject);
+
+                 [self requestSuccessWithUrl:url response:responseObject handler:completionHandler];
+             }
+             failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                 if (judge) {
+                     [[YZToastView sharedToast] hideToast];
+                 }
+                 
+                 [self requestFailureWithError:error handler:completionHandler];
+             }];
+    }
+    else if ([method isEqualToString:@"POST"]) {
+        [manager POST:url
+           parameters:parameters
+              success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+                  if (judge) {
+                      [[YZToastView sharedToast] hideToast];
+                  }
+                  if ([url containsString:@"member/info"]) {
+                      ;
+                      NSHTTPURLResponse *response = (NSHTTPURLResponse *)task.response;
+                      NSArray *cookies =[NSHTTPCookie cookiesWithResponseHeaderFields:[response allHeaderFields] forURL:response.URL];
+                      [DataManager sharedManager].cookieArray = cookies;
+                      NSLog(@"cookies ======= %@\n\n", cookies);
+                  }
+                  NSLog(@"responseObject ======= %@\n\n\n", responseObject);
+
+                  [self requestSuccessWithUrl:url response:responseObject handler:completionHandler];
+              }
+              failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                  NSLog(@"error ====== %@\n", error);
+                  if (judge) {
+                      [[YZToastView sharedToast] hideToast];
+                  }
+                  [self requestFailureWithError:error handler:completionHandler];
+              }];
+    }
+
+}
+
++ (void)requestWithData:(id)data
+                    url:(NSString *)url
+             parameters:(id)parameters
+      completionHandler:(void (^)(id, NSError *))completionHandler {
+    [[YZToastView sharedToast] showToast];
+    
+    url = [url_base stringByAppendingString:url];
+    
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    [(AFJSONResponseSerializer *)manager.responseSerializer setRemovesKeysWithNullValues:YES];
+    [manager.requestSerializer setValue:[NSString stringWithFormat:@"iOS %@",[[UIDevice currentDevice] systemVersion]] forHTTPHeaderField:@"User-Agent"];
+
+    [manager POST:url
+       parameters:parameters
+constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+    if (data) {
+        [formData appendPartWithFileData:[[data allObjects] firstObject]
+                                    name:[[data allKeys] firstObject]
+                                fileName:[NSString stringWithFormat:@"%f.jpeg", [NSDate timeIntervalSinceReferenceDate]]
+                                mimeType:@"image/jpeg"];
+    }
+}
+          success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+              [[YZToastView sharedToast] hideToast];
+              [self requestSuccessWithUrl:url response:responseObject handler:completionHandler];
+          }
+          failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+              
+              [[YZToastView sharedToast] hideToast];
+              NSLog(@"statusCode = %d", (int)((NSHTTPURLResponse *)task.response).statusCode);
+              if (((NSHTTPURLResponse *)task.response).statusCode != 404) {
+                  NSLog(@"request failure : %@", error);
+              }
+
+              [self requestFailureWithError:error handler:completionHandler];
+          }];
+}
+
++ (AFSecurityPolicy *)customSecurityPolicyWithValidate:(BOOL)validate {
+    if (validate) {
+        // 先导入证书
+        NSString *cerPath = [[NSBundle mainBundle] pathForResource:@"yzmoney.com" ofType:@"cer"];//证书的路径
+        NSData *certData = [NSData dataWithContentsOfFile:cerPath];
+        
+        // AFSSLPinningModeCertificate 使用证书验证模式
+        AFSecurityPolicy *securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModeCertificate];
+        
+        // allowInvalidCertificates 是否允许无效证书（也就是自建的证书），默认为NO
+        // 如果是需要验证自建证书，需要设置为YES
+        securityPolicy.allowInvalidCertificates = YES;
+        
+        //validatesDomainName 是否需要验证域名，默认为YES；
+        //假如证书的域名与你请求的域名不一致，需把该项设置为NO；如设成NO的话，即服务器使用其他可信任机构颁发的证书，也可以建立连接，这个非常危险，建议打开。
+        //置为NO，主要用于这种情况：客户端请求的是子域名，而证书上的是另外一个域名。因为SSL证书上的域名是独立的，假如证书上注册的域名是www.google.com，那么mail.google.com是无法验证通过的；当然，有钱可以注册通配符的域名*.google.com，但这个还是比较贵的。
+        //如置为NO，建议自己添加对应域名的校验逻辑。
+        securityPolicy.validatesDomainName = NO;
+        
+        securityPolicy.pinnedCertificates = @[certData];
+        
+        return securityPolicy;
+    }
+    else {
+        // AFSSLPinningModeNone 不使用证书验证模式
+        AFSecurityPolicy *securityPolicy = [AFSecurityPolicy policyWithPinningMode:AFSSLPinningModeNone];
+        
+        // allowInvalidCertificates 是否允许无效证书（也就是自建的证书），默认为NO
+        // 如果是需要验证自建证书，需要设置为YES
+        securityPolicy.allowInvalidCertificates = YES;
+        
+        //validatesDomainName 是否需要验证域名，默认为YES；
+        //假如证书的域名与你请求的域名不一致，需把该项设置为NO；如设成NO的话，即服务器使用其他可信任机构颁发的证书，也可以建立连接，这个非常危险，建议打开。
+        //置为NO，主要用于这种情况：客户端请求的是子域名，而证书上的是另外一个域名。因为SSL证书上的域名是独立的，假如证书上注册的域名是www.google.com，那么mail.google.com是无法验证通过的；当然，有钱可以注册通配符的域名*.google.com，但这个还是比较贵的。
+        //如置为NO，建议自己添加对应域名的校验逻辑。
+        securityPolicy.validatesDomainName = NO;
+        
+        return securityPolicy;
+    }
+}
+
+
+#pragma mark - handler
+
++ (void)requestSuccessWithUrl:(NSString *)url
+                     response:(id)responseObject
+                      handler:(void (^)(id response, NSError *error))completionHandler {
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    if (!responseObject) {
+        [YZToastView showToastWithText:@"网络不通，请稍后尝试"];
+        return;
+    }
+
+    if ([responseObject isKindOfClass:[UIImage class]]) {
+        completionHandler(responseObject, nil);
+        return;
+    }
+    
+    if ([responseObject[@"code"] integerValue] == 0) {
+        completionHandler(responseObject, nil);
+    }
+    else if ([responseObject[@"code"] integerValue] == 99) {
+        [APPDELEGATE.window.rootViewController performSegueWithIdentifier:@"segue_tab_login" sender:nil];
+        if ([url containsString:@"productJson"]) {
+            completionHandler(nil, nil);
+        }
+    }
+    else if ([responseObject[@"code"] integerValue] == 98) {
+        YZSurveyVC *surveyVC = [[YZSurveyVC alloc] initWithUrl:[responseObject valueForKeyPath:@"data"]];
+        [APPDELEGATE.window.rootViewController presentViewController:surveyVC animated:YES completion:nil];
+    }
+    else {
+        if ([responseObject[@"code"] integerValue] == 100) {
+            completionHandler(responseObject, nil);
+        }
+        
+//        UIAlertController *ac = [UIAlertController alertControllerWithTitle:nil
+//                                                                    message:responseObject[@"msg"]
+//                                                             preferredStyle:UIAlertControllerStyleAlert];
+//        UIAlertAction *aa = [UIAlertAction actionWithTitle:@"确定"
+//                                                     style:UIAlertActionStyleDefault
+//                                                   handler:nil];
+//        [ac addAction:aa];
+//        if (APPDELEGATE.window.rootViewController.presentedViewController) {
+//            [APPDELEGATE.window.rootViewController.presentedViewController presentViewController:ac animated:YES completion:nil];
+//        }
+//        else {
+//            [APPDELEGATE.window.rootViewController presentViewController:ac animated:YES completion:nil];
+//        }
+    }
+}
+
++ (void)requestFailureWithError:(NSError *)error
+                        handler:(void (^)(id response, NSError *error))completionHandler {
+    completionHandler(nil, error);
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+[YZToastView showToastWithText:@"网络不通，请稍后尝试"];
+}
+
+@end

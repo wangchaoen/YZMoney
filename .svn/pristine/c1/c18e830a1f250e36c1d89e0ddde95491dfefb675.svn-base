@@ -1,0 +1,21 @@
+//
+//  YZProductDetailVC.h
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/9.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "YZProductModel.h"
+
+
+
+
+
+@interface YZProductDetailVC : UIViewController
+
+@property (nonatomic, copy) NSString *url;
+@property (nonatomic, copy) NSString *idProduct;
+
+@end

@@ -1,0 +1,640 @@
+//
+//  YZMineAppointDetailVC.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/18.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZMineAppointDetailVC.h"
+#import "YZMineAppointPictureVC.h"
+#import "YZImageSV.h"
+#import "YZProductAppointVC.h"
+#import "YZMineAttachmentController.h"
+#import "YZLoadImModel.h"
+#import "IDCardCell.h"
+#import "AddImageCell.h"
+#import "UUImageAvatarBrowser.h"
+
+@interface YZMineAppointDetailVC () <UITableViewDataSource, UITableViewDelegate, IDCardCellDelegate, AddImageCellDelegate>
+
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *constraintBottom;
+
+@property (nonatomic, strong) NSArray *arrMessage;
+@property (nonatomic, strong) NSArray *arrFile;
+@property (nonatomic, strong) NSDictionary *dicEmployee;
+@property (nonatomic, strong) NSMutableArray *arrSection;
+
+//格式化完的图片数组
+@property (nonatomic, strong) NSMutableArray *imageArr;
+@end
+
+
+
+
+
+@implementation YZMineAppointDetailVC
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:NOT_REFESH_MINEAPPDEAIL object:nil];
+}
+- (void) reloadView {
+    [self apiManager];
+    if (_appointDoneBlock) {
+        _appointDoneBlock();
+    }
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(reloadView) name:NOT_REFESH_MINEAPPDEAIL object:nil];
+    
+    // Do any additional setup after loading the view.
+    self.imageArr = [NSMutableArray array];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(keyboardDidShow:)
+//                                                 name:UIKeyboardDidShowNotification
+//                                               object:nil];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(keyboardDidHide:)
+//                                                 name:UIKeyboardDidHideNotification
+//                                               object:nil];
+    
+    self.tableView.estimatedRowHeight = 50.0f;
+    [_tableView registerClass:[IDCardCell class] forCellReuseIdentifier:NSStringFromClass([IDCardCell class])];
+    [_tableView registerClass:[AddImageCell class] forCellReuseIdentifier:NSStringFromClass([AddImageCell class])];
+    [self apiManager];
+    WEAK_SELF;
+    [Utility MJRefreshHeaderGif:self.tableView headerWithRefreshingBlock:^{
+        [weakSelf apiManager];
+    }];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+- (void)apiManager {
+    WEAK_SELF;
+    [YZHttpApiManager apiMineAppointDetailWithParameters:@{@"id": _appoint.ID}
+                                       completionHandler:^(id response, NSError *error) {
+                                           [_tableView.mj_header endRefreshing];
+                                           [weakSelf.imageArr removeAllObjects];
+                                           _dicEmployee = [response valueForKeyPath:@"data.orderData.employee"];
+#pragma mark - 最新修改图片数组
+                                           _arrFile     = [response valueForKeyPath:@"data.orderData.fileViewList"];
+                                           _arrMessage  = [response valueForKeyPath:@"data.orderData.messageList"];
+                                           _appoint     = (YZAppointModel *)[[[YZAppointModel alloc] init] modelFromJson:[response valueForKeyPath:@"data.orderData"]];
+                                           
+                                           _arrSection = [NSMutableArray arrayWithArray:@[@"section_appoint", @"section_client"]];
+                                           if (_arrMessage.count) {
+                                               [_arrSection addObject:@"section_message"];
+                                           }
+                                           if (_arrFile.count) {
+                                               [_arrSection addObject:@"section_file"];
+                                               [weakSelf imageArrayFormatting];
+                                           }
+                                           [_tableView reloadData];
+                                           
+                                           if (_appoint.chanBalanceStatus+_appoint.empBalanceStatus > 0) {
+                                               _constraintBottom.constant = 0.0f;
+                                           }
+                                           else {
+                                               for (UIView *view in self.view.subviews) {
+                                                   if ([view isKindOfClass:[UIButton class]]) {
+                                                       [view removeFromSuperview];
+                                                   }
+                                               }
+                                               UIButton *b1 = [[UIButton alloc] initWithFrame:CGRectMake(0.0f, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                                                         CGRectGetWidth(self.view.frame), 50.0f)];
+                                               [b1 setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                                               [b1 setBackgroundColor:RGBColor(255.0f, 90.0f, 90.0f, 1.0f)];
+                                               [b1 addTarget:self action:@selector(actionOrder:) forControlEvents:UIControlEventTouchUpInside];
+                                               UIButton *b2 = [[UIButton alloc] initWithFrame:CGRectMake(CGRectGetWidth(self.view.frame)/2, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                                                         CGRectGetWidth(self.view.frame)/2, 50.0f)];
+                                               [b2 setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                                               [b2 setBackgroundColor:RGBColor(255.0f, 90.0f, 90.0f, 1.0f)];
+                                               [b2 addTarget:self action:@selector(actionOrder:) forControlEvents:UIControlEventTouchUpInside];
+                                               [self.view addSubview:b2];
+                                               [self.view addSubview:b1];
+                                               
+                                               if (_appoint.bookingStatus==0 || _appoint.bookingStatus==10) {
+                                                   [b1 setTitle:@"取消预约" forState:UIControlStateNormal];
+                                               }
+                                               else if (_appoint.bookingStatus == 1) {
+                                                   if (_appoint.orderStatus==0) {
+                                                       b1.frame = CGRectMake(0.0f, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                             CGRectGetWidth(self.view.frame)/2, 50.0f);
+                                                       [b1 setTitle:@"报单" forState:UIControlStateNormal];
+                                                       [b2 setTitle:@"取消预约" forState:UIControlStateNormal];
+                                                       
+                                                       UIView *v = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetWidth(self.view.frame)/2, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                                                            1.0f, 50.0f)];
+                                                       v.backgroundColor = RGBColor(229.0f, 229.0f, 229.0f, 1.0f);
+                                                       [self.view addSubview:v];
+                                                   }
+                                                   else if (_appoint.orderStatus == 1) {
+                                                       b1.frame = CGRectMake(0.0f, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                             CGRectGetWidth(self.view.frame)/2, 50.0f);
+                                                       [b1 setTitle:@"取消报单" forState:UIControlStateNormal];
+                                                       [b2 setTitle:@"补传附件" forState:UIControlStateNormal];
+                                                       
+                                                       UIView *v = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetWidth(self.view.frame)/2, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                                                            1.0f, 50.0f)];
+                                                       v.backgroundColor = RGBColor(229.0f, 229.0f, 229.0f, 1.0f);
+                                                       [self.view addSubview:v];
+                                                   }
+                                                   else if (_appoint.orderStatus == 2) {
+                                                       [b1 setTitle:@"补传附件" forState:UIControlStateNormal];
+                                                   }
+                                                   else if (_appoint.orderStatus==3 || _appoint.orderStatus==4) {
+                                                       b1.frame = CGRectMake(0.0f, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                             CGRectGetWidth(self.view.frame)/2, 50.0f);
+                                                       [b1 setTitle:@"删除报单" forState:UIControlStateNormal];
+                                                       [b2 setTitle:@"重新报单" forState:UIControlStateNormal];
+                                                       
+                                                       UIView *v = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetWidth(self.view.frame)/2, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                                                            1.0f, 50.0f)];
+                                                       v.backgroundColor = RGBColor(229.0f, 229.0f, 229.0f, 1.0f);
+                                                       [self.view addSubview:v];
+                                                   }
+                                                   else if (_appoint.orderStatus == 5) {
+                                                       [b1 setTitle:@"删除报单" forState:UIControlStateNormal];
+                                                   }
+                                               }
+                                               else if (_appoint.bookingStatus==2 || _appoint.bookingStatus==3) {
+                                                   b1.frame = CGRectMake(0.0f, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                         CGRectGetWidth(self.view.frame)/2, 50.0f);
+                                                   [b1 setTitle:@"删除预约" forState:UIControlStateNormal];
+                                                   [b2 setTitle:@"重新预约" forState:UIControlStateNormal];
+                                                   
+                                                   UIView *v = [[UIView alloc] initWithFrame:CGRectMake(CGRectGetWidth(self.view.frame)/2, CGRectGetHeight(self.view.frame)-50.0f,
+                                                                                                        1.0f, 50.0f)];
+                                                   v.backgroundColor = RGBColor(229.0f, 229.0f, 229.0f, 1.0f);
+                                                   [self.view addSubview:v];
+                                               }
+                                               else if (_appoint.bookingStatus==4 || _appoint.bookingStatus==11) {
+                                                   [b1 setTitle:@"删除预约" forState:UIControlStateNormal];
+                                               }
+                                           }
+                                       }];
+}
+
+
+#pragma mark - notification
+
+- (void)keyboardDidShow:(NSNotification *)noti {
+    CGSize kbSize = [[noti.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue].size;
+    _tableView.frame = CGRectMake(CGRectGetMinX(_tableView.frame), CGRectGetMinY(_tableView.frame),
+                                  CGRectGetWidth(_tableView.frame), CGRectGetHeight(self.view.frame)-64.0f-kbSize.height);
+}
+
+- (void)keyboardDidHide:(NSNotification *)noti {
+    _tableView.frame = CGRectMake(CGRectGetMinX(_tableView.frame), CGRectGetMinY(_tableView.frame),
+                                  CGRectGetWidth(_tableView.frame), CGRectGetHeight(self.view.frame)-64.0f);
+}
+#pragma mark - utils
+- (void)imageArrayFormatting {
+    NSMutableArray *IDCardArr = [NSMutableArray array];
+    NSMutableArray *bankCardArr = [NSMutableArray array];
+    NSMutableArray *paymentVoucherArr = [NSMutableArray array];
+    NSMutableArray *bankTureArr = [NSMutableArray array];
+    NSMutableArray *LegalPerArr = [NSMutableArray array];
+    NSMutableArray *organizationCodeCertificateArr = [NSMutableArray array];
+    for (NSDictionary *dic in _arrFile) {
+        YZLoadImModel *model = [[YZLoadImModel alloc]init];
+        [model modelFromJson:dic];
+        switch (model.attachType) {
+            case 1:
+                [IDCardArr addObject:model];
+                break;
+            case 2:
+                [IDCardArr addObject:model];
+                break;
+            case 3:
+                [bankCardArr addObject:model];
+                break;
+            case 4:
+                [paymentVoucherArr addObject:model];
+                break;
+            case 6:
+                [bankTureArr addObject:model];
+                break;
+            case 8:
+                [organizationCodeCertificateArr addObject:model];
+                break;
+            case 11:
+                [LegalPerArr addObject:model];
+                break;
+            default:
+                break;
+        }
+    }
+    if (IDCardArr.count > 0) {
+        [self.imageArr addObject:IDCardArr];
+    }
+    if (bankCardArr.count > 0) {
+        [self.imageArr addObject:bankCardArr];
+    }
+    if (organizationCodeCertificateArr.count > 0) {
+        [self.imageArr addObject:organizationCodeCertificateArr];
+    }
+    if (LegalPerArr.count > 0) {
+        [self.imageArr addObject:LegalPerArr];
+    }
+    if (bankTureArr.count > 0) {
+        [self.imageArr addObject: bankTureArr];
+    }
+    if (paymentVoucherArr.count > 0) {
+        [self.imageArr addObject:paymentVoucherArr]
+        ;
+    }
+}
+
+#pragma mark - table view
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return _arrSection.count;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if ([_arrSection[section] isEqualToString:@"section_appoint"]) {
+        return 8;
+    }
+    else if ([_arrSection[section] isEqualToString:@"section_client"]) {
+        return 2;
+    }
+    else if ([_arrSection[section] isEqualToString:@"section_message"]) {
+        return _arrMessage.count;
+    }
+    else if ([_arrSection[section] isEqualToString:@"section_file"]) {
+        return self.imageArr.count;
+    }
+    else {
+        return 0;
+    }
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 0.0f, CGRectGetWidth(self.view.frame), 30.0f)];
+    l.font = [UIFont systemFontOfSize:16.0f];
+    l.textColor = RGBColor(59.0f, 59.0f, 59.0f, 1.0f);
+    l.textAlignment = NSTextAlignmentCenter;
+    
+    if ([_arrSection[section] isEqualToString:@"section_client"]) {
+        l.text = @"客户信息";
+    }
+    else if ([_arrSection[section] isEqualToString:@"section_message"]) {
+        l.text = @"留言";
+    }
+    else if ([_arrSection[section] isEqualToString:@"section_file"]) {
+        l.text = @"附件";
+    }
+
+    return l;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return section ? 30.0f : 15.0f;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if ([_arrSection[indexPath.section] isEqualToString:@"section_message"]) {
+        return UITableViewAutomaticDimension;
+    }
+    else if ([_arrSection[indexPath.section] isEqualToString:@"section_file"]) {
+        NSArray *array = self.imageArr[indexPath.row];
+        YZLoadImModel *modelDemo = [array firstObject];
+//        CGFloat width = (S_W - 15 * 3) / 2;
+//        CGFloat height = width / 8 * 5;
+        CGFloat height = 110;
+        if (modelDemo.attachType == 1 || modelDemo.attachType == 2) {
+            return height + 50;
+        }
+       NSInteger a = array.count;
+        return 50 + height * ((a + 1) / 2) + 20 * ((a + 1) / 2);
+//        float height = (CGRectGetWidth(self.view.frame)-39.0f)/2/8*5;
+//        NSInteger line = (_arrFile.count+1)/2;
+//        return height*line+30*line;
+        
+    }
+    else {
+        return 50.0f;
+    }
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [[UITableViewCell alloc] init];
+    
+    if ([_arrSection[indexPath.section] isEqualToString:@"section_appoint"]) {
+        switch (indexPath.row) {
+            case 0: {
+                NSString *status = @"";
+                if (_appoint.chanBalanceStatus+_appoint.empBalanceStatus > 0) {
+                    if (_appoint.chanBalanceStatus+_appoint.empBalanceStatus == 4) {
+                        status = @"结算成功";
+                    }
+                    else {
+                        status = @"结算中";
+                    }
+                }
+                else if (_appoint.bookingStatus==0 || _appoint.bookingStatus==10) {
+                    status = @"预约待审核";
+                }
+                else if (_appoint.bookingStatus == 1) {
+                    if (_appoint.orderStatus == 0) {
+                        status = @"预约成功";
+                    }
+                    else if (_appoint.orderStatus == 1) {
+                        status = @"报单待审核";
+                    }
+                    else if (_appoint.orderStatus == 2) {
+                        status = @"报单成功";
+                    }
+                    else if (_appoint.orderStatus == 3) {
+                        status = @"报单失败";
+                    }
+                    else if (_appoint.orderStatus == 4) {
+                        status = @"报单取消";
+                    }
+                    else if (_appoint.orderStatus == 5) {
+                        status = @"报单作废";
+                    }
+                }
+                else if (_appoint.bookingStatus == 2) {
+                    status = @"预约失败";
+                }
+                else if (_appoint.bookingStatus == 3) {
+                    status = @"预约取消";
+                }
+                else if (_appoint.bookingStatus==4 || _appoint.bookingStatus==11) {
+                    status = @"预约作废";
+                }
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_status"];
+                [(UILabel *)[cell viewWithTag:1] setText:status];
+                break;
+            }
+            case 1: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_sn"];
+                [(UILabel *)[cell viewWithTag:1] setText:_appoint.sn];
+                break;
+            }
+            case 2: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_nameProduct"];
+                [(UILabel *)[cell viewWithTag:1] setText:_appoint.productName];
+                break;
+            }
+            case 3: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_time"];
+                [(UILabel *)[cell viewWithTag:1] setText:[YZHelper dateStringFromTimestamp:_appoint.createDate]];
+                break;
+            }
+            case 4: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_amount"];
+                [(UILabel *)[cell viewWithTag:1] setText:[NSString stringWithFormat:@"%ld万元", (long)_appoint.subscribeAmount]];
+                break;
+            }
+            case 5: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_rate"];
+                [(UILabel *)[cell viewWithTag:1] setText:[NSString stringWithFormat:@"%@", _appoint.commissionRateStr]];
+                break;
+            }
+            case 6: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_profit"];
+                [(UILabel *)[cell viewWithTag:1] setText:[NSString stringWithFormat:@"%ld元", (long)_appoint.commissionAmount]];
+                break;
+            }
+            case 7: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_manager"];
+                [(UILabel *)[cell viewWithTag:1] setText:[NSString stringWithFormat:@"%@ （%@）", _dicEmployee[@"employeeName"]?:@"", _dicEmployee[@"employeePhone"]?:@""]];
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    else if ([_arrSection[indexPath.section] isEqualToString:@"section_client"]) {
+        switch (indexPath.row) {
+            case 0: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_nameCustomer"];
+                [(UILabel *)[cell viewWithTag:1] setText:_appoint.customerName];
+                break;
+            }
+            case 1: {
+                cell = [tableView dequeueReusableCellWithIdentifier:@"cell_idNo"];
+                [(UILabel *)[cell viewWithTag:1] setText:_appoint.identifyNo];
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    else if ([_arrSection[indexPath.section] isEqualToString:@"section_message"]) {
+        cell = [tableView dequeueReusableCellWithIdentifier:@"cell_comment"];
+        [(UILabel *)[cell viewWithTag:1] setText:[_arrMessage[indexPath.row] valueForKey:@"replyId"]?@"系统回复：":@"我的留言："];
+        [(UILabel *)[cell viewWithTag:2] setText:[_arrMessage[indexPath.row] valueForKey:@"message"]];
+        [(UILabel *)[cell viewWithTag:3] setText:[YZHelper dateStringFromTimestamp:[[_arrMessage[indexPath.row] valueForKey:@"createDate"] doubleValue]]];
+    }
+    else if ([_arrSection[indexPath.section] isEqualToString:@"section_file"]) {
+        NSArray *array = self.imageArr[indexPath.row];
+        YZLoadImModel *modelDemo = [array firstObject];
+        if (modelDemo.attachType == 1 || modelDemo.attachType == 2) {
+            IDCardCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([IDCardCell class])];
+            cell.delegate = self;
+            if (_appoint.customerType) {
+                cell.positiveLbl.text = @"法人身份证正面";
+                cell.backLbl.text = @"法人身份证反面";
+            }else {
+                cell.positiveLbl.text = @"身份证正面";
+                cell.backLbl.text = @"身份证反面";
+            }
+            BOOL judge1 = false;
+            BOOL judge2 = false;
+            for (YZLoadImModel *model in array) {
+                if (model.attachType == 1) {
+                    judge1 = true;
+                    NSString *url = [NSString stringWithFormat:@"%@image/order?id=%@", url_base, model.ID];
+                    [cell.positiveImage sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:nil];
+                }else if (model.attachType == 2){
+                    judge2 = true;
+                    NSString *url = [NSString stringWithFormat:@"%@image/order?id=%@", url_base, model.ID];
+                    [cell.backImage sd_setImageWithURL:[NSURL URLWithString:url] placeholderImage:nil];
+                }
+            }
+            cell.positiveImage.hidden = judge1 ? false : true;
+            cell.backImage.hidden = judge2 ? false : true;
+            return cell;
+        } else {
+            AddImageCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([AddImageCell class])];
+            cell.delegate = self;
+            cell.addTap = true;
+            if (modelDemo.attachType == 3) {
+                cell.titleLbl.text = @"银行卡";
+            } else if (modelDemo.attachType == 4) {
+                cell.titleLbl.text = @"打款凭证";
+            } else if (modelDemo.attachType == 6) {
+                cell.titleLbl.text = @"开户许可证";
+            } else if (modelDemo.attachType == 8) {
+                cell.titleLbl.text = @"机构证件";
+            }else {
+//                modelDemo.attachType == 11
+                cell.titleLbl.text = @"法人证明书";
+            }
+            [cell sendArrayCreatViewIndex:indexPath imageArr:array];
+            
+            return cell;
+        }
+        
+        
+//        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell_image"];
+//        
+//        float width  = (CGRectGetWidth(self.view.frame)-39.0f)/2;
+//        float height = (CGRectGetWidth(self.view.frame)-39.0f)/2/8*5;
+//        for (NSInteger i=0; i<_arrFile.count; i++) {
+//            UIImageView *iv = [[UIImageView alloc] initWithFrame:CGRectMake(!(i%2)?15.0f:(width+27.0f), i/2*height+15.0f+30.0f*(i/2),
+//                                                                            width, height)];
+//            iv.contentMode = UIViewContentModeScaleAspectFit;
+//            iv.tag = i;
+//            iv.userInteractionEnabled = YES;
+//            [iv sd_setImageWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@image/order?id=%@", url_base, [_arrFile[i] valueForKey:@"id"]]] placeholderImage:nil];
+//            
+//            [iv addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(actionTap:)]];
+//            [cell.contentView addSubview:iv];
+//        }
+    }
+
+    return cell;
+}
+
+
+#pragma mark - action
+
+- (void)actionTap:(UITapGestureRecognizer *)gesture {
+    YZImageSV *isv = [[YZImageSV alloc] initWithFrame:[[UIScreen mainScreen] bounds] images:_arrFile page:gesture.view.tag];
+    [isv showImageSV];
+}
+
+- (void)actionOrder:(UIButton *)sender {
+    if ([sender.titleLabel.text isEqualToString:@"报单"] || [sender.titleLabel.text isEqualToString:@"补传附件"] || [sender.titleLabel.text isEqualToString:@"重新报单"]) {
+//        [self performSegueWithIdentifier:@"segue_appoint_picture" sender:_arrFile];
+//#warning 临时修改
+        YZMineAttachmentController *dddd = [[YZMineAttachmentController alloc]init];
+        dddd.idAppoint = self.appoint.ID;
+        dddd.showType = _appoint.customerType ? ShowTypeSecond : ShowTypeFirst;
+        dddd.imageArr = _arrFile;
+        if (_appoint.bookingStatus == 1) {
+            if (_appoint.orderStatus == 0 || _appoint.orderStatus == 3 || _appoint.orderStatus == 4) {
+                        dddd.supplement = true;
+            }
+            else if (_appoint.orderStatus == 2) {
+                dddd.supplement = false;
+            }
+        }
+
+        [self.navigationController pushViewController:dddd animated:true];
+            }
+    else if ([sender.titleLabel.text isEqualToString:@"取消预约"]) {
+        [YZHttpApiManager apiOrderCancelBookingWithParameters:@{@"id": _appoint.ID}
+                                            completionHandler:^(id response, NSError *error) {
+                                                if (_appointDoneBlock) {
+                                                    _appointDoneBlock();
+                                                }
+                                                
+                                                [self.navigationController popViewControllerAnimated:YES];
+                                            }];
+    }
+    else if ([sender.titleLabel.text isEqualToString:@"取消报单"]) {
+        [YZHttpApiManager apiOrderCancelOrderWithParameters:@{@"id": _appoint.ID}
+                                          completionHandler:^(id response, NSError *error) {
+                                              if (_appointDoneBlock) {
+                                                  _appointDoneBlock();
+                                              }
+                                              
+                                              [self.navigationController popViewControllerAnimated:YES];
+                                          }];
+    }
+    else if ([sender.titleLabel.text isEqualToString:@"删除报单"]) {
+        UIAlertController *ac = [UIAlertController alertControllerWithTitle:nil
+                                                                    message:@"确认删除报单？"
+                                                             preferredStyle:UIAlertControllerStyleAlert];
+        [ac addAction:[UIAlertAction actionWithTitle:@"确定"
+                                               style:UIAlertActionStyleDefault
+                                             handler:^(UIAlertAction * _Nonnull action) {
+                                                 [YZHttpApiManager apiOrderDeleteBookingWithParameters:@{@"id": _appoint.ID}
+                                                                                     completionHandler:^(id response, NSError *error) {
+                                                                                         if (_appointDoneBlock) {
+                                         _appointDoneBlock();                                                }
+                                                                                                                                     [self.navigationController popViewControllerAnimated:YES];
+                                                                                     }];
+                                             }]];
+        [ac addAction:[UIAlertAction actionWithTitle:@"取消"
+                                               style:UIAlertActionStyleCancel
+                                             handler:nil]];
+        [self presentViewController:ac animated:YES completion:nil];
+    }
+    else if ([sender.titleLabel.text isEqualToString:@"删除预约"]) {
+        UIAlertController *ac = [UIAlertController alertControllerWithTitle:nil
+                                                                    message:@"确认删除预约？"
+                                                             preferredStyle:UIAlertControllerStyleAlert];
+        [ac addAction:[UIAlertAction actionWithTitle:@"确定"
+                                               style:UIAlertActionStyleDefault
+                                             handler:^(UIAlertAction * _Nonnull action) {
+                                                 [YZHttpApiManager apiOrderDeleteBookingWithParameters:@{@"id": _appoint.ID}
+                                                                                     completionHandler:^(id response, NSError *error) {
+                                                                                         if (_appointDoneBlock) {                                                 _appointDoneBlock();
+                                                                                         }
+                                                                                         [self.navigationController popViewControllerAnimated:YES];
+                                                                                     }];
+                                             }]];
+        [ac addAction:[UIAlertAction actionWithTitle:@"取消"
+                                               style:UIAlertActionStyleCancel
+                                             handler:nil]];
+        [self presentViewController:ac animated:YES completion:nil];
+    }
+    else if ([sender.titleLabel.text isEqualToString:@"重新预约"]) {
+        YZProductAppointVC *pavc = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"vc_product_appoint"];
+        pavc.appoint = _appoint;
+        pavc.appointDoneBlock = _appointDoneBlock;
+        [self.navigationController pushViewController:pavc animated:YES];
+    }
+}
+
+
+#pragma mark - segue
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+//    if ([segue.identifier isEqualToString:@"segue_appoint_picture"]) {
+//        [(YZMineAppointPictureVC *)segue.destinationViewController setIdAppoint:_appoint.ID];
+//        [(YZMineAppointPictureVC *)segue.destinationViewController setType:_appoint.customerType];
+//        [(YZMineAppointPictureVC *)segue.destinationViewController setArrImage:sender];
+//        [(YZMineAppointPictureVC *)segue.destinationViewController setPictureDoneBlock:^{
+//            [self apiManager];
+//            _appointDoneBlock();
+//        }];
+//        
+//        if (_appoint.bookingStatus == 1) {
+//            if (_appoint.orderStatus==0 || _appoint.orderStatus==3 || _appoint.orderStatus==4) {
+//                [(YZMineAppointPictureVC *)segue.destinationViewController setCanDone:YES];
+//            }
+//            else if (_appoint.orderStatus == 2) {
+//                [(YZMineAppointPictureVC *)segue.destinationViewController setCanDone:NO];
+//            }
+//        }
+//    }
+}
+#pragma mark - delegate 
+- (void)touchIDCardCellDelegateAction:(UIView *)view {
+    UIImageView *image = (UIImageView *)view;
+    if (image.image != nil) {
+        [UUImageAvatarBrowser showImage:image];
+    }
+}
+- (void)addImageDelegateImage:(UIView *)view index:(NSIndexPath *)index {
+    UIImageView *image = (UIImageView *)view;
+    if (image.image != nil) {
+        [UUImageAvatarBrowser showImage:image];
+    }
+}
+@end

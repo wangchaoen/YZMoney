@@ -1,0 +1,71 @@
+//
+//  YZADScrollView.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/6.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZADScrollView.h"
+#import "YZADModel.h"
+#import "YZHttpClient.h"
+#import <SDCycleScrollView/SDCycleScrollView.h>
+
+
+
+@interface YZADScrollView () <UIScrollViewDelegate, SDCycleScrollViewDelegate>
+@property (nonatomic, strong) NSMutableArray *arrImage;
+@property (nonatomic, assign) UIViewController *vc;
+@property (nonatomic, strong) NSArray *arrAD;
+@end
+
+
+
+
+
+@implementation YZADScrollView
+
+-(void)createScrollViewWithArray:(NSArray *)array vc:(UIViewController *)vc {
+    self.arrAD = array;
+    self.vc = vc;
+    SDCycleScrollView *scrollView = [SDCycleScrollView cycleScrollViewWithFrame:self.bounds delegate:self placeholderImage:[UIImage imageNamed:@"750-360占位图.png"]];
+    scrollView.autoScrollTimeInterval = 5;
+    scrollView.pageControlAliment = SDCycleScrollViewPageContolAlimentRight;
+    scrollView.showPageControl = YES;
+    scrollView.imageURLStringsGroup = self.arrImage;
+    [self addSubview:scrollView];
+    
+}
+- (void)cycleScrollView:(SDCycleScrollView *)cycleScrollView didSelectItemAtIndex:(NSInteger)index {
+    if ([[(YZADModel *)_arrAD[index] url] containsString:@"linkType=product"]) {
+        NSString *idProduct = @"";
+        NSArray *arr = [[(YZADModel *)_arrAD[index] url] componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"?&"]];
+        for (NSString *str in arr) {
+            if ([str containsString:@"productId"]) {
+                idProduct = [str substringFromIndex:10];
+            }
+        }
+        WEAK_SELF;
+        [YZHttpApiManager apiProductWithParameters:@{@"productId": idProduct}
+                                 completionHandler:^(id response, NSError *error) {
+                                     [weakSelf.vc performSegueWithIdentifier:@"segue_ad_product" sender:[(YZADModel *)weakSelf.arrAD[index] url]];
+                                 }];
+    }
+    else if ([[(YZADModel *)_arrAD[index] url] containsString:@"linkType=article"]) {
+        [_vc performSegueWithIdentifier:@"segue_ad_news" sender:[(YZADModel *)_arrAD[index] url]];
+    }
+    else {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[(YZADModel *)_arrAD[index] url]]];
+    }
+    
+    [MobClick event:@"index_banner" label:[_arrAD[index] ID]];
+}
+
+- (void)setArrAD:(NSArray *)arrAD {
+    _arrAD = arrAD;
+    _arrImage = [NSMutableArray array];
+    for (YZADModel *ad in _arrAD) {
+        [_arrImage addObject:ad.image];
+    }
+}
+@end

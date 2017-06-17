@@ -1,0 +1,71 @@
+//
+//  YZAdderssCell.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/25.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZAdderssCell.h"
+
+@implementation YZAdderssCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
+        self.backgroundColor = YZ_GRAY_COLOR;
+        [self.contentView addSubview:self.backView];
+        [self.backView addSubview:self.nameLbl];
+        [self.backView addSubview:self.phoneNumberLbl];
+        [self.backView addSubview:self.adderssLbl];
+        [self.backView addSubview:self.defaultLbl];
+        [self.backView addSubview:self.editorBut];
+        
+        UIView *line1 = [[UIView alloc]initWithFrame:CGRectMake(S_W - 56, 10, 1, 55 - 20)];
+        line1.backgroundColor = YZ_GRAY_COLOR;
+        [self.backView addSubview:line1];
+    }
+    return self;
+}
+- (UIView *)backView {
+    if (!_backView) {
+        _backView = [[UIView alloc]initWithFrame:CGRectMake(5, 5, S_W - 10, 55)];
+        _backView.backgroundColor = [UIColor whiteColor];
+        _backView.userInteractionEnabled = YES;
+    }
+    return _backView;
+}
+- (UILabel *)nameLbl {
+    if (!_nameLbl) {
+        _nameLbl = [[UILabel alloc]initWithFrame:CGRectMake(15, 10, 90, 20)];
+        _nameLbl.text = @"高传峰";
+        _nameLbl.font = MidFont;
+    }
+    return _nameLbl;
+}
+- (UILabel *)phoneNumberLbl {
+    if (!_phoneNumberLbl) {
+        _phoneNumberLbl = [[UILabel alloc]initWithFrame:CGRectMake(CGRectGetMaxX(_nameLbl.frame) + 10, 10  , S_W - CGRectGetMaxX(_nameLbl.frame) - 100, 20)];
+        _phoneNumberLbl.text = @"18641331820";
+        _phoneNumberLbl.font = MidFont;
+    }
+    return _phoneNumberLbl;
+}
+- (UILabel *)adderssLbl {
+    if (!_adderssLbl) {
+        _adderssLbl = [[UILabel alloc]initWithFrame:CGRectMake(15, CGRectGetMaxY(_phoneNumberLbl.frame), S_W - 15 - 70, 20)];
+        _adderssLbl.font = MinFont;
+        _adderssLbl.text = @"辽宁省大连市沙河口区软件园路22号2号楼2楼";
+    }
+    return _adderssLbl;
+}
+- (UIButton *)editorBut {
+    if (!_editorBut) {
+        _editorBut = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_editorBut setBackgroundImage:[UIImage imageNamed:@"editor_icon"] forState:UIControlStateNormal];
+        _editorBut.frame = CGRectMake(S_W - 50, 10, 35, 35);
+    }
+    return _editorBut;
+}
+@end

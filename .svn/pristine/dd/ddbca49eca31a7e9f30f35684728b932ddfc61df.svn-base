@@ -1,0 +1,77 @@
+//
+//  YZContractView.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/11.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZContractView.h"
+#import "YZContractCell.h"
+
+@interface YZContractView ()<UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource, YZContractCellDelegate>
+
+@end
+
+@implementation YZContractView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        for (int i = 0; i < 2; i++) {
+            UITableView *table = [[UITableView alloc]initWithFrame:CGRectMake(i * S_W, 0, S_W, self.frame.size.height)];
+            table.backgroundColor = YZ_GRAY_COLOR;
+            table.tag = i;
+            table.delegate = self;
+            table.dataSource = self;
+            [table registerClass:[YZContractCell class] forCellReuseIdentifier:NSStringFromClass([YZContractCell class])];
+            [self addSubview:table];
+        }
+        self.contentSize = CGSizeMake(S_W * 2, 0);
+        self.pagingEnabled = YES;
+        self.showsVerticalScrollIndicator = NO;
+        self.showsHorizontalScrollIndicator = NO;
+        self.delegate = self;
+    }
+    return self;
+}
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    if (![scrollView isKindOfClass:[UITableView class]]) {
+        //    scrollView.contentOffset.x
+    }
+}
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    if (self.viewDelegate && [self.viewDelegate respondsToSelector:@selector(scrollViewDidEndScroll)]) {
+        [self.viewDelegate scrollViewDidEndScroll];
+    }
+    
+}
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+    if (self.viewDelegate && [self.viewDelegate respondsToSelector:@selector(scrollViewDidEndScroll)]) {
+        [self.viewDelegate scrollViewDidEndScroll];
+    }
+
+}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 10;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath  {
+    return 95;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    YZContractCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([YZContractCell class])];
+    cell.delegate = self;
+    return cell;
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.viewDelegate && [self.viewDelegate respondsToSelector:@selector(clickTableCellAction)]) {
+        [self.viewDelegate clickTableCellAction];
+    }
+}
+- (void)butClickActionWithCell:(YZContractCell *)cell but:(UIButton *)but {
+    if (self.viewDelegate && [self.viewDelegate respondsToSelector:@selector(clickButCellAction)]) {
+        [self.viewDelegate clickButCellAction];
+    }
+}
+@end

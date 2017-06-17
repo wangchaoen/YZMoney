@@ -1,0 +1,14 @@
+//
+//  ProductNameModel.h
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/3/13.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZBaseModel.h"
+
+@interface ProductNameModel : YZBaseModel
+@property (nonatomic, copy) NSString *key;
+@property (nonatomic, copy) NSString *value;
+@end

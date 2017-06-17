@@ -1,0 +1,78 @@
+//
+//  YZProductModel.h
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/6.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZBaseModel.h"
+
+
+
+
+
+@interface YZProductModel : YZBaseModel
+
+@property (nonatomic, copy) NSString *ID;
+@property (nonatomic, copy) NSString *comment;
+@property (nonatomic, copy) NSString *Description;
+@property (nonatomic, copy) NSString *documentPath;
+@property (nonatomic, copy) NSString *finaningDesc;
+@property (nonatomic, copy) NSString *fullName;
+@property (nonatomic, copy) NSString *fundUse;
+@property (nonatomic, copy) NSString *guaranteeDesc;
+@property (nonatomic, copy) NSString *issuer;
+@property (nonatomic, copy) NSString *lightPoint;
+@property (nonatomic, copy) NSString *logoUrl;
+@property (nonatomic, copy) NSString *name;
+@property (nonatomic, copy) NSString *pawn;
+@property (nonatomic, copy) NSString *paybackRate;
+@property (nonatomic, copy) NSString *productManagerNo;
+@property (nonatomic, copy) NSString *progressDesc;
+@property (nonatomic, copy) NSString *realName;
+@property (nonatomic, copy) NSString *repaySource;
+@property (nonatomic, copy) NSString *riskControl;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, copy) NSString *sumNetValueView;
+
+@property (nonatomic, assign) BOOL existVIP;
+@property (nonatomic, assign) BOOL soldOut;
+@property (nonatomic, assign) BOOL validStatus;
+@property (nonatomic, assign) BOOL onMarket;
+@property (nonatomic, assign) double progressRate;
+@property (nonatomic, assign) NSInteger issuedAmount;
+@property (nonatomic, assign) NSInteger pawnRate;
+@property (nonatomic, assign) NSInteger raiseAmount;
+@property (nonatomic, assign) NSTimeInterval createDate;
+@property (nonatomic, assign) NSTimeInterval reserveDate;
+@property (nonatomic, assign) NSTimeInterval offsetTime;
+
+@property (nonatomic, strong) NSArray *keyWords;
+@property (nonatomic, strong) NSArray *profitList;
+@property (nonatomic, strong) NSDictionary *signTag;
+@property (nonatomic, strong) NSDictionary *manager;
+@property (nonatomic, strong) NSDictionary *investField;
+@property (nonatomic, strong) NSDictionary *expectedIncome;
+@property (nonatomic, strong) NSDictionary *fiduciaryComp;
+@property (nonatomic, strong) NSDictionary *emailInfo;
+@property (nonatomic, strong) NSDictionary *cycle;
+@property (nonatomic, strong) NSDictionary *attrMap;
+@property (nonatomic, strong) NSDictionary *bsmatch;
+@property (nonatomic, strong) NSDictionary *paramMap;
+@property (nonatomic, strong) NSDictionary *payMethod;
+@property (nonatomic, strong) NSDictionary *productType;
+@property (nonatomic, strong) NSDictionary *projectArea;
+@property (nonatomic, strong) NSDictionary *raiseAccount;
+@property (nonatomic, strong) NSDictionary *saleStatus;
+@property (nonatomic, strong) NSDictionary *subscribeLimit;
+@property (nonatomic, strong) NSDictionary *fundManager;
+@property (nonatomic, strong) NSDictionary *managerComp;
+
+#pragma mark - 新增H5交互获取数据
+@property (nonatomic, copy) NSArray *docList;
+@property (nonatomic, copy) NSArray *listCopy;
+#pragma mark - 判断登录开关
+@property (nonatomic, assign) BOOL checkLogin;
+@property (nonatomic, assign) BOOL fileCheckLogin;
+@end

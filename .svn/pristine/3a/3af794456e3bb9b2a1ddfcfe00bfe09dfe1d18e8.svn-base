@@ -1,0 +1,133 @@
+//
+//  YZContractView.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/11.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZContractView.h"
+#import "YZContractCell.h"
+
+#define TABLEVIEW_TAG 1000
+
+@interface YZContractView ()<UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource, YZContractCellDelegate>
+@property (nonatomic, strong) NSMutableArray<NSMutableArray *> *dataArray;
+@property (nonatomic, strong) NSMutableArray *currentPageArray;
+@property (nonatomic, strong) NSMutableArray *searchArray;
+@end
+
+@implementation YZContractView
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        self.backgroundColor = YZ_GRAY_COLOR;
+        self.dataArray = [[NSMutableArray alloc] initWithArray:@[[NSMutableArray array],[NSMutableArray array]]];
+        self.currentPageArray = [NSMutableArray arrayWithArray:@[@1, @1]];
+        self.searchArray = [NSMutableArray arrayWithArray:@[@"", @""]];
+        
+        for (int i = 0; i < 2; i++) {
+            UITableView *table = [[UITableView alloc]initWithFrame:CGRectMake(i * S_W, 0, S_W, self.frame.size.height)];
+            table.backgroundColor = YZ_GRAY_COLOR;
+            table.tag = i + TABLEVIEW_TAG;
+            table.delegate = self;
+            table.dataSource = self;
+            table.tableFooterView = [UIView new];
+            [table registerClass:[YZContractCell class] forCellReuseIdentifier:NSStringFromClass([YZContractCell class])];
+            WEAK_SELF;
+            [Utility MJRefreshHeaderGif:table headerWithRefreshingBlock:^{
+                weakSelf.currentPageArray[i] = @0;
+                [self request];
+            }];
+            table.mj_footer = [MJRefreshAutoNormalFooter footerWithRefreshingBlock:^{
+                weakSelf.currentPageArray[i] = @([weakSelf.currentPageArray[i] integerValue] + 1);
+                [self request];
+            }];
+            table.mj_footer.hidden = YES;
+            [self addSubview:table];
+        }
+        self.contentSize = CGSizeMake(S_W * 2, 0);
+        self.pagingEnabled = YES;
+        self.showsVerticalScrollIndicator = NO;
+        self.showsHorizontalScrollIndicator = NO;
+        self.delegate = self;
+        [self request];
+    }
+    return self;
+}
+#pragma mark - request
+- (void)request {
+    
+}
+#pragma mark - publicAction
+- (void)searchActionWithText:(NSString *)text{
+    if (text.length > 0) {
+        self.searchArray[[self returnCurrentPage]] = text;
+    }else {
+        self.searchArray[[self returnCurrentPage]] = @"";
+    }
+    [self request];
+}
+- (NSInteger)returnCurrentPage {
+    NSInteger i = self.contentOffset.x / S_W;
+    return i;
+}
+#pragma mark - scrollDelegate
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    if (![scrollView isKindOfClass:[UITableView class]]) {
+
+    }
+}
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    if ([scrollView isKindOfClass:[UITableView class]]) {
+        return;
+    }
+    if (self.viewDelegate && [self.viewDelegate respondsToSelector:@selector(scrollViewDidEndScroll)]) {
+        [self.viewDelegate scrollViewDidEndScroll];
+    }
+    if (self.dataArray[[self returnCurrentPage]].count == 0) {
+        [self request];
+    }
+}
+- (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
+    if ([scrollView isKindOfClass:[UITableView class]]) {
+        return;
+    }
+    if (self.viewDelegate && [self.viewDelegate respondsToSelector:@selector(scrollViewDidEndScroll)]) {
+        [self.viewDelegate scrollViewDidEndScroll];
+    }
+    if (self.dataArray[[self returnCurrentPage]].count == 0) {
+        [self request];
+    }
+}
+#pragma mark - tableViewDelegate
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return self.dataArray[tableView.tag - TABLEVIEW_TAG].count;
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath  {
+    return 95;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    YZContractCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([YZContractCell class])];
+    cell.delegate = self;
+    NSMutableArray *array = [self.dataArray objectAtIndex:[self returnCurrentPage]];
+    YZContractModel *model = array[indexPath.row];
+    model.type = tableView.tag - TABLEVIEW_TAG;
+    [cell sendWithModel:model index:indexPath.row];
+    return cell;
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (self.viewDelegate && [self.viewDelegate respondsToSelector:@selector(clickTableCellAction)]) {
+        [self.viewDelegate clickTableCellAction];
+    }
+}
+- (void)butClickActionWithCell:(YZContractCell *)cell but:(UIButton *)but {
+    if (self.viewDelegate && [self.viewDelegate respondsToSelector:@selector(clickButCellActionWithModel:)]) {
+        NSMutableArray *array = [self.dataArray objectAtIndex:[self returnCurrentPage]];
+       YZContractModel *model = array[but.tag];
+        [self.viewDelegate clickButCellActionWithModel:model];
+    }
+}
+@end

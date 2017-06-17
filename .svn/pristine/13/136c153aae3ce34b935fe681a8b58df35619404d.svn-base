@@ -1,0 +1,13 @@
+//
+//  YZProductDetailsModel.h
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/5/11.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZJsonBaseModel.h"
+
+@interface YZProductDetailsModel : YZJsonBaseModel
+
+@end

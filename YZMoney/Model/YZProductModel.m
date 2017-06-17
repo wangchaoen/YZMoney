@@ -1,0 +1,38 @@
+//
+//  YZProductModel.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/6.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZProductModel.h"
+
+
+
+
+
+@implementation YZProductModel
+- (NSArray *)labelArray {
+    NSMutableArray *labelArray = [NSMutableArray array];
+//    NSArray *arrayData = [self.paramMap[@"chanpingaikuang"][@"product_tag"] componentsSeparatedByString:@","];
+//    for (NSString *str1 in arrayData) {
+//        NSArray *strArray1 = [str1 componentsSeparatedByString:@"、"];
+//        for (NSString *str2 in strArray1) {
+//            NSArray *strArray2 = [str2 componentsSeparatedByString:@"，"];
+//            for (NSString *str3 in strArray2) {
+//                [labelArray addObject:str3];
+//            }
+//        }
+//    }
+    return labelArray;
+}
+
++ (NSArray *)jsonWithData:(id)data {
+    NSMutableArray *array = [NSMutableArray array];
+    for (NSDictionary *dic in [data valueForKeyPath:@"data.productResult.result"]) {
+        [array addObject:[[YZProductModel alloc] initWithDict:dic]];
+    }
+    return array;
+}
+@end

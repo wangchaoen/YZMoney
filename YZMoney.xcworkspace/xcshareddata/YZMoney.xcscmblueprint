@@ -1,0 +1,25 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "ab661e04-1bb5-11e5-8fa0-895777852dc1++4331",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+    "ab661e04-1bb5-11e5-8fa0-895777852dc1++4331" : {
+
+    }
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "ab661e04-1bb5-11e5-8fa0-895777852dc1++4331" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "12BC821F-6FA9-40DD-8A81-F7969738BF15",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "ab661e04-1bb5-11e5-8fa0-895777852dc1++4331" : "YZMoney\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "YZMoney",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "YZMoney.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "svn:\/\/192.168.0.12\/tech",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Subversion",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "ab661e04-1bb5-11e5-8fa0-895777852dc1++4331"
+    }
+  ]
+}

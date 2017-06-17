@@ -1,0 +1,74 @@
+//
+//  YZHelper.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/11.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZHelper.h"
+
+
+@implementation YZHelper
+
++ (NSString *)dateStringFromTimestamp:(NSTimeInterval)time {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateFormat = @"yyyy-MM-dd HH:mm";
+    NSDate *date = [NSDate dateWithTimeIntervalSince1970:time/1000];
+    return [formatter stringFromDate:date];
+}
+
++ (UIImage *)createImageWithColor:(UIColor *)color {
+    CGRect rect = CGRectMake(0, 0, 1, 1);
+    UIGraphicsBeginImageContext(rect.size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, [color CGColor]);
+    CGContextFillRect(context, rect);
+    UIImage *theImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return theImage;
+}
+
++ (UIImage *)roundCornerImageWithSize:(CGSize)size colorFill:(UIColor *)color {
+    UIGraphicsBeginImageContext(size);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGContextSetLineWidth(context, 1.0f);
+    CGContextMoveToPoint(context, size.width, 10.0f);
+    CGContextAddArcToPoint(context, size.width, size.height, 0.0f, size.height, 10.0f);
+    CGContextAddArcToPoint(context, 0.0f, size.height, 0.0f, 0.0f, 10.0f);
+    CGContextAddArcToPoint(context, 0.0f, 0.0f, size.width, 0.0f, 10.0f);
+    CGContextAddArcToPoint(context, size.width, 0.0f, size.width, size.height, 10.0f);
+    CGContextClosePath(context);
+        
+    CGContextSetStrokeColorWithColor(context, RGBColor(204.0f, 204.0f, 204.0f, 1.0f).CGColor);
+    CGContextSetFillColorWithColor(context, color.CGColor);
+    
+    CGContextDrawPath(context, kCGPathFillStroke);
+
+    UIImage *i = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return i;
+}
+
++ (NSAttributedString *)attributedStringFromText:(NSString *)text font:(float)font {
+    NSMutableAttributedString *attrS = [[NSMutableAttributedString alloc] initWithString:text];
+    [attrS addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font] range:NSMakeRange(0, attrS.length)];
+    
+    NSMutableArray *arr = [NSMutableArray array];
+    while ([text containsString:@"%"]) {
+        NSRange range = [text rangeOfString:@"%"];
+        NSValue *v = arr.lastObject;
+        [arr addObject:[NSValue valueWithRange:NSMakeRange(range.location+v.rangeValue.location+v.rangeValue.length, range.length)]];
+        text = [text substringFromIndex:range.location+range.length];
+    }
+    
+    for (NSValue *value in arr) {
+        [attrS addAttribute:NSFontAttributeName value:[UIFont systemFontOfSize:font/2] range:value.rangeValue];
+    }
+    
+    return attrS;
+}
+
+@end

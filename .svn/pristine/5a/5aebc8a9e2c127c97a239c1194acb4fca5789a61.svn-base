@@ -1,0 +1,479 @@
+//
+//  YZProductDetailVC.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/9.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZProductDetailVC.h"
+#import "YZProductAppointVC.h"
+#import "YZActionSheet.h"
+#import "YZProductModel.h"
+#import "YZMineServiceVC.h"
+#import "YZEmailView.h"
+#import "YZProductDocumentVC.h"
+#import "UIWebView+Https.h"
+#import <MSWeakTimer/MSWeakTimer.h>
+#import "WebViewController.h"
+#import "UIImage+ImageWithColor.h"
+#import "InstitutionController.h"
+#import "YZLabelVC.h"
+
+@interface YZProductDetailVC () <UIWebViewDelegate>
+
+@property (weak, nonatomic) IBOutlet UIWebView *webView;
+//@property (nonatomic, strong) UIWebView *webView;
+
+@property (strong, nonatomic) UIButton *btnAppoint;
+@property (nonatomic, strong) YZProductModel *product;
+@property (nonatomic, assign) NSInteger countDown;
+@property (nonatomic, strong) NSString *idFavorite;
+@property (nonatomic, strong) UIView *viewProgress;
+
+#pragma mark - H5交互
+@property (nonatomic, copy) NSArray *docList;
+@property (nonatomic, copy) NSArray *listCopy;
+@property (nonatomic, copy) NSArray *productTag;
+@end
+
+
+
+
+
+@implementation YZProductDetailVC
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    self.webView.delegate = self;
+
+    self.navigationController.navigationBar.tintColor = [UIColor whiteColor];
+}
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    self.webView.delegate = nil;
+}
+- (void)backAction {
+    [self.navigationController popViewControllerAnimated:YES];
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.view.backgroundColor = [UIColor whiteColor];
+    self.webView.backgroundColor = [UIColor whiteColor];
+    [self apiRequest];
+    self.webView.frame = CGRectMake(0, 64, S_W, S_H);
+    [MobClick event:@"detail_view"];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(userHasGet:)
+                                                 name:kUserHasGet
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(userHasRemove:)
+                                                 name:kUserHasRemove
+                                               object:nil];
+    
+    
+    _viewProgress = [[UIView alloc] initWithFrame:CGRectMake(0.0f, 64.0f, CGRectGetWidth(self.view.frame)/5, 4.0f)];
+    _viewProgress.backgroundColor = YZ_RED_COLOR;
+    [self.view addSubview:_viewProgress];
+    
+    for (int i = 0; i < 4; i++) {
+        UIButton *but = [UIButton buttonWithType:UIButtonTypeCustom];
+        but.frame = CGRectMake(i % 4 * (S_W / 4), S_H - 49, S_W / 4, 49);
+        but.backgroundColor = [UIColor whiteColor];
+        [self.view addSubview:but];
+
+        if (i == 0) {
+            [but setTitle:@"客服" forState:UIControlStateNormal];
+            but.titleLabel.font = [UIFont systemFontOfSize:14];
+            but.titleLabel.textAlignment = NSTextAlignmentCenter;
+            //            [but setTitleEdgeInsets:UIEdgeInsetsMake(25, 0, 0, 20)];
+            [but setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            //            [but setImageEdgeInsets:UIEdgeInsetsMake(10, 25, 20, 0)];
+            //            [but setImage:[UIImage imageNamed:@"致电.png"] forState:UIControlStateNormal];
+            
+            UIView *line = [[UIView alloc]initWithFrame:CGRectMake(CGRectGetMaxX(but.frame) - 1, S_H - 49 + 4, 1, 49 - 8)];
+            line.backgroundColor = [UIColor lightGrayColor];
+            [self.view addSubview:line];
+            [but addTarget:self action:@selector(callAction) forControlEvents:UIControlEventTouchUpInside];
+            
+        }else if (i == 2) {
+            [but setTitle:@"收藏" forState:UIControlStateNormal];
+            but.titleLabel.font = [UIFont systemFontOfSize:14];
+            but.titleLabel.textAlignment = NSTextAlignmentCenter;
+            //            [but setTitleEdgeInsets:UIEdgeInsetsMake(25, 0, 0, 20)];
+            [but setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            //            [but setImageEdgeInsets:UIEdgeInsetsMake(10, 25, 20, 0)];
+            //            [but setImage:[UIImage imageNamed:@"收藏.png"] forState:UIControlStateNormal];
+            but.tag = 1;
+            [but addTarget:self action:@selector(actionFavorite:) forControlEvents:UIControlEventTouchUpInside];
+            
+        }else if (i == 1) {
+            [but setTitle:@"邮件" forState:UIControlStateNormal];
+            but.titleLabel.font = [UIFont systemFontOfSize:14];
+            but.titleLabel.textAlignment = NSTextAlignmentCenter;
+            //            [but setTitleEdgeInsets:UIEdgeInsetsMake(25, 0, 0, 20)];
+            [but setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            //            [but setImageEdgeInsets:UIEdgeInsetsMake(10, 25, 20, 0)];
+            //            [but setImage:[UIImage imageNamed:@"邮件.png"] forState:UIControlStateNormal];
+            [but addTarget:self action:@selector(actionEmail) forControlEvents:UIControlEventTouchUpInside];
+            UIView *line = [[UIView alloc]initWithFrame:CGRectMake(CGRectGetMaxX(but.frame) - 1, S_H - 49 + 4, 1, 49 - 8)];
+            line.backgroundColor = [UIColor lightGrayColor];
+            [self.view addSubview:line];
+        }else{
+            [but setBgColorNormal:YZ_RED_COLOR];
+            [but setBgColorDisabled:[UIColor lightGrayColor]];
+            [but setTitle:@"预约" forState:UIControlStateNormal];
+            but.titleLabel.font = [UIFont systemFontOfSize:14];
+            [but setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            [but addTarget:self action:@selector(btnAppointAction) forControlEvents:UIControlEventTouchUpInside];
+            self.btnAppoint = but;
+        }
+    }
+}
+
+- (void)apiRequest {
+    if (_url) {
+        NSArray *arr = [[NSURL URLWithString:_url].query componentsSeparatedByString:@"&"];
+        for (NSString *str in arr) {
+            if ([str containsString:@"productId"]) {
+                _idProduct = [str substringFromIndex:10];
+            }
+        }
+    }
+    
+    NSString *url = [NSString stringWithFormat:@"%@product/v2/detail?productId=%@", url_base, _idProduct];
+    NSMutableDictionary *cookieDic = [NSMutableDictionary dictionary];
+    NSHTTPCookieStorage *cookieJar = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+    for (NSHTTPCookie *cookie in [cookieJar cookies]) {
+        [cookieDic setObject:cookie.value forKey:cookie.name];
+    }
+    // cookie重复，先放到字典进行去重，再进行拼接
+    NSMutableString *cookieValue = [NSMutableString stringWithFormat:@""];
+    for (NSString *key in cookieDic) {
+        NSString *appendString = [NSString stringWithFormat:@"%@=%@;", key, [cookieDic valueForKey:key]];
+        [cookieValue appendString:appendString];
+    }
+    NSMutableURLRequest * request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
+    if (ISLOGIN) {
+        [request addValue:cookieValue forHTTPHeaderField:@"Cookie"];
+    }
+    [_webView loadHttpsRequest:request];
+    
+    WEAK_SELF;
+    [YZHttpApiManager apiProductWithParameters:@{@"productId": _idProduct}
+                             completionHandler:^(id response, NSError *error) {
+                                 weakSelf.product =     (YZProductModel *)[[[YZProductModel alloc] init] modelFromJson:[response valueForKeyPath:@"data.product"]];
+                                 weakSelf.navigationItem.title = weakSelf.product.name;
+
+                                 weakSelf.listCopy = [response valueForKeyPath:@"data.copyList"];
+                                 weakSelf.productTag = [response valueForKeyPath:@"data.productTag"];
+                                 weakSelf.docList = [response valueForKeyPath:@"data.docList"];
+                                 
+                                 if (weakSelf.product.offsetTime > 0) {
+                                     weakSelf.btnAppoint.enabled = NO;
+                                     if (weakSelf.product.offsetTime < 24*60*60) {
+                                         [MSWeakTimer scheduledTimerWithTimeInterval:5
+                                                                              target:self
+                                                                            selector:@selector(countDown:)
+                                                                            userInfo:nil
+                                                                             repeats:YES
+                                                                       dispatchQueue:dispatch_get_main_queue()];
+                                     }
+                                     else {
+                                         NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+                                         formatter.dateFormat = @"yyyy-MM-dd";
+                                         [weakSelf.btnAppoint setTitle:[NSString stringWithFormat:@"%@开启",[formatter stringFromDate:[NSDate dateWithTimeIntervalSince1970:weakSelf.product.reserveDate/1000]]] forState:UIControlStateDisabled];
+                                     }
+                                 }
+                                 else {
+                                     weakSelf.btnAppoint.enabled = YES;
+                                     [weakSelf.btnAppoint setTitle:@"预约" forState:UIControlStateNormal];
+                                 }
+                                 
+                                 if ([weakSelf.product.saleStatus[@"value"] integerValue] == 3) {
+                                     weakSelf.btnAppoint.enabled = NO;
+                                     [weakSelf.btnAppoint setTitle:@"售罄" forState:UIControlStateDisabled];
+                                 }
+                                 if (!weakSelf.product.onMarket) {
+                                     weakSelf.btnAppoint.enabled = NO;
+                                     [weakSelf.btnAppoint setTitle:@"失效" forState:UIControlStateDisabled];
+                                 }
+                                 if (!weakSelf.product.validStatus && weakSelf.product.onMarket) {
+                                     weakSelf.btnAppoint.enabled = NO;
+                                     [weakSelf.btnAppoint setTitle:@"更新中" forState:UIControlStateDisabled];
+                                 }
+                             }];
+    
+    [YZHttpApiManager apiProductIsFavoriteWithParameters:@{@"ids": _idProduct}
+                                       completionHandler:^(id response, NSError *error) {
+                                           weakSelf.idFavorite = [[[response valueForKeyPath:@"data"] firstObject] valueForKey:@"favoriteId"];
+                                           if (weakSelf.idFavorite.length) {
+                                               [(UIButton *)[weakSelf.view viewWithTag:1] setTitle:@"取消收藏" forState:UIControlStateNormal];
+                                           }
+                                           else {
+                                               [(UIButton *)[weakSelf.view viewWithTag:1] setTitle:@"收藏" forState:UIControlStateNormal];
+                                           }
+                                       }];
+}
+
+- (void)countDown:(MSWeakTimer *)timer {
+    if (_countDown < _product.offsetTime-1) {
+        _countDown++;
+        NSInteger offset = _product.offsetTime-_countDown;
+        NSCalendar *calendar = [NSCalendar currentCalendar];
+        NSDateComponents *components = [calendar components:NSCalendarUnitHour|NSCalendarUnitMinute|NSCalendarUnitSecond fromDate:[NSDate date] toDate:[NSDate dateWithTimeIntervalSinceNow:offset] options:0];
+        NSString *h = components.hour<10?[NSString stringWithFormat:@"0%ld",(long)components.hour]:[NSString stringWithFormat:@"%ld",(long)components.hour];
+        NSString *m = components.minute<10?[NSString stringWithFormat:@"0%ld",(long)components.minute]:[NSString stringWithFormat:@"%ld",(long)components.minute];
+        NSString *s = components.second<10?[NSString stringWithFormat:@"0%ld",(long)components.second]:[NSString stringWithFormat:@"%ld",(long)components.second];
+        [_btnAppoint setTitle:[NSString stringWithFormat:@"%@:%@:%@",h,m,s] forState:UIControlStateDisabled];
+    }
+    else {
+        [timer invalidate];
+        _btnAppoint.enabled = YES;
+        [_btnAppoint setTitle:@"我要预约" forState:UIControlStateNormal];
+    }
+}
+#pragma mark - notification
+
+- (void)userHasGet:(NSNotification *)noti {
+    [self apiRequest];
+}
+
+- (void)userHasRemove:(NSNotification *)noti {
+    [self apiRequest];
+}
+
+#pragma mark - webViewDelegate
+
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
+//    NSLog(@"%@", [request valueForHTTPHeaderField:@"User-Agent"]);
+
+    NSString *url = request.URL.absoluteString;
+    url = [url stringByReplacingOccurrencesOfString:@";" withString:@""];
+    if ([url containsString:@"passport/login"]) {
+        // 登录
+        [Utility goLogin];
+        return NO;
+    }else if ([url containsString:@"app_server_copy"]){
+        //复制
+        NSArray *array = [url componentsSeparatedByString:@"app_server_copy:"];
+        NSInteger i = [[array lastObject] integerValue];
+        NSString *str = _listCopy[i];
+        [self copyActionWithText:str];
+        return NO;
+        
+    }else if ([url containsString:@"app_server_detail"]){
+        //产品详情
+        NSArray *array = [url componentsSeparatedByString:@"app_server_detail:"];
+        NSString *str = [array lastObject];
+        NSArray *parameter = [str componentsSeparatedByString:@","];
+        NSString *ID = [parameter firstObject];
+        NSString *checkLogin = [parameter lastObject];
+        if ([checkLogin boolValue] && !ISLOGIN) {
+            [Utility goLogin];
+        }else {
+            [self prodectTypeDetailVCWith:ID];
+        }
+        return NO;
+        
+    }else if ([url containsString:@"app_server_file"]){
+        //PDF
+        NSArray *array = [url componentsSeparatedByString:@"app_server_file:"];
+        NSInteger i = [[array lastObject] integerValue];
+        NSDictionary *dic = _docList[i];
+        if (!dic) {
+            return NO;
+        }
+        NSString *url = [NSString stringWithFormat:@"%@product/readFile?productId=%@&sign=%@", url_base, _idProduct, dic[@"id"]];
+        if (_product.fileCheckLogin && !ISLOGIN) {
+            [Utility goLogin];
+        }else {
+            [self openPDFwithUrl:url title:dic[@"fullName"]];
+        }
+        return NO;
+    }else if ([url containsString:@"app_server_company"]) {
+        //产品机构
+        NSArray *array = [url componentsSeparatedByString:@"app_server_company:"];
+        NSString *ID = [array lastObject];
+        [self prodectActionWithID:ID];
+        return NO;
+    }else if ([url containsString:@"app_server_tag"]){
+        NSArray *array = [url componentsSeparatedByString:@"app_server_tag:"];
+        NSInteger i = [[array lastObject] integerValue];
+        if (self.productTag.count > i) {
+            NSString *str = self.productTag[i];
+            [self prodectLabelWith:str];
+        }
+        return NO;
+    }
+    return YES;
+}
+- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
+    WEAK_SELF;
+    [YZViewManager viewManagerWithView:_webView
+                                  data:nil
+                                 error:error
+                                 block:^(){
+                                     [weakSelf progressViewFinish];                                   }];
+}
+- (void)webViewDidFinishLoad:(UIWebView *)webView {
+        self.webView.frame = CGRectMake(0, 64, S_W, S_H - 64 - 49);
+    [self progressViewFinish];
+}
+
+#pragma mark - Utils 
+- (void)progressViewFinish {
+    WEAK_SELF;
+    [UIView animateWithDuration:0.3f
+                     animations:^{
+                         weakSelf.viewProgress.frame = CGRectMake(0.0f, 64.0f, CGRectGetWidth(weakSelf.view.frame), 4.0f);
+                     }
+                     completion:^(BOOL finished) {
+                         [weakSelf.viewProgress removeFromSuperview];
+                     }];
+}
+#pragma mark - JS action
+// copyUtils
+- (void)copyActionWithText:( NSString *)text {
+    if (text) {
+        UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+        pasteboard.string = text;
+        [YZToastView showToastWithText:@"复制成功"];
+    }else {
+        [YZToastView showToastWithText:@"复制失败"];
+    }
+}
+// PDF
+- (void)openPDFwithUrl:(NSString *_Nullable)url title:(NSString *)title{
+    WebViewController *webVC = [[WebViewController alloc]initWithUrl:url title:title];
+    [self.navigationController pushViewController:webVC animated:YES];
+}
+// label
+- (void)prodectTypeDetailVCWith:(NSString *)ID {
+    YZProductDetailVC *productVC = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"vc_product"];
+    productVC.idProduct = ID;
+    [self.navigationController pushViewController:productVC animated:YES];
+}
+- (void)prodectActionWithID:(NSString *)ID {
+    InstitutionController *vc = [[InstitutionController alloc]initWithTitle: _product.fiduciaryComp[@"name"] companyId:ID];
+    [self.navigationController pushViewController:vc animated:YES];
+}
+// label
+- (void)prodectLabelWith:(NSString *)str {
+    YZLabelVC *vc = [[YZLabelVC alloc]initWithTitle:str];
+    [self.navigationController pushViewController:vc animated:YES];
+}
+
+#pragma mark - action
+- (IBAction)actionMore:(UIBarButtonItem *)sender {
+    if (ISLOGIN) {
+        YZActionSheet *as = [[YZActionSheet alloc] initWithID:nil
+                                                      arrMore:nil
+                                                     arrShare:@[@"微信好友", @"朋友圈"]];
+        as.shareUrl = [NSString stringWithFormat:@"%@product/detail?productId=%@&share=true",url_h5,_idProduct];
+        as.shareTitle = _product.name;
+        as.shareContent = _product.lightPoint.length?_product.lightPoint:@" ";
+        as.shareImage = _product.logoUrl.length?[NSData dataWithContentsOfURL:[NSURL URLWithString:[NSString stringWithFormat:@"%@%@",url_res,_product.logoUrl]]]:[UIImage imageNamed:@"80.png"];
+        [as show];
+    }
+    else {
+        [Utility goLogin];
+    }
+}
+
+- (void)actionFavorite:(UIButton *)sender {
+    if (!ISLOGIN) {
+        [Utility goLogin];
+        return;
+    }
+    if (!_idFavorite.length) {
+        WEAK_SELF;
+        [YZHttpApiManager apiProductFavoriteWithParameters:@{@"pid":_idProduct, @"fid":@""}
+                                         completionHandler:^(id response, NSError *error) {
+                                             //                                             [self apiRequest];
+                                             weakSelf.idFavorite = @"1";
+                                             [MobClick event:@"detail_favor" label:@"收藏"];
+                                             [(UIButton *)[self.view viewWithTag:1] setTitle:@"取消收藏" forState:UIControlStateNormal];   [YZToastView showToastWithText:@"收藏成功"];
+                                             //                                                                                            [(UIButton *)[weakSelf.view viewWithTag:1] setImage:[UIImage imageNamed:@"收藏-.png"] forState:UIControlStateNormal];
+                                         }];
+    }
+    else {
+        WEAK_SELF;
+        [YZHttpApiManager apiProductFavoriteWithParameters:@{@"pid":_idProduct, @"fid":_idFavorite}
+                                         completionHandler:^(id response, NSError *error) {
+                                             //                                             [self apiRequest];
+                                             weakSelf.idFavorite = @"";
+                                             
+                                             [(UIButton *)[self.view viewWithTag:1] setTitle:@"收藏" forState:UIControlStateNormal];  [YZToastView showToastWithText:@"取消收藏成功"];
+                                             //                                             [(UIButton *)[weakSelf.view viewWithTag:1] setImage:[UIImage imageNamed:@"收藏.png"] forState:UIControlStateNormal];                                             [MobClick event:@"detail_favor" label:@"取消收藏"];
+                                         }];
+    }
+    
+    [MobClick event:@"loveDetail" label:@"收藏"];
+}
+- (void)callAction {
+    YZMineServiceVC *vc = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"vc_service"];
+    vc.idProduct = _idProduct;
+    [self.navigationController pushViewController:vc animated:YES];
+    [MobClick event:@"callDetail" label:@"咨询"];
+    
+}
+- (void)btnAppointAction {
+    if (!ISLOGIN) {
+        [Utility goLogin];
+        return;
+    }
+    YZProductAppointVC *vc = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"vc_product_appoint"];
+    vc.idProduct = _idProduct;
+    [self.navigationController pushViewController:vc animated:YES];
+    [MobClick event:@"dateDetail" label:@"预约"];
+}
+
+- (void)actionEmail {
+    if (ISLOGIN) {
+        [MobClick event:@"detail_mail"];
+        YZEmailView *ev = [[[NSBundle mainBundle] loadNibNamed:@"YZEmailView" owner:nil options:nil] firstObject];
+        ev.frame = [[UIScreen mainScreen] bounds];
+        ev.idProduct = _idProduct;
+        [APPDELEGATE.window addSubview:ev];
+        ev.alpha = 0;
+        [UIView animateWithDuration:0.3 animations:^{
+            ev.alpha = 1;
+        }];
+    }
+    else {
+        [Utility goLogin];
+    }
+    
+    [MobClick event:@"mailDetail" label:@"邮件"];
+}
+
+#pragma mark - segue
+
+- (BOOL)shouldPerformSegueWithIdentifier:(NSString *)identifier sender:(id)sender {
+    if (([identifier isEqualToString:@"segue_product_appoint"] && !yz_user) || ([identifier isEqualToString:@"segue_product_doc"] && !yz_user)) {
+        [Utility goLogin];
+        return NO;
+    }
+    else {
+        return YES;
+    }
+}
+
+//- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+//    if ([segue.identifier isEqualToString:@"segue_product_appoint"]) {
+//        [(YZProductAppointVC *)segue.destinationViewController setIdProduct:_idProduct];
+//        [MobClick event:@"dateDetail" label:@"预约"];
+//    }
+//    else if ([segue.identifier isEqualToString:@"segue_product_service"]) {
+//        [(YZMineServiceVC *)segue.destinationViewController setIdProduct:_idProduct];
+//        [MobClick event:@"callDetail" label:@"咨询"];
+//    }
+//    else if ([segue.identifier isEqualToString:@"segue_product_doc"]) {
+//        [(YZProductDocumentVC *)segue.destinationViewController setIdProduct:_idProduct];
+//        [MobClick event:@"fileDetail" label:@"资料"];
+//    }
+//}
+
+@end

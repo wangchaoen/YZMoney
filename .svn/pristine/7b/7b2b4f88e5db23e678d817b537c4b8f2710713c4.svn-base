@@ -1,0 +1,33 @@
+PODS:
+  - CYLTableViewPlaceHolder (1.0.8)
+  - IQKeyboardManager (4.0.7)
+  - JSONModel (1.7.0)
+  - MSWeakTimer (1.1.0)
+  - ObjectiveSugar (1.1.0)
+  - SDCycleScrollView (1.65):
+    - SDWebImage (~> 3.7)
+  - SDWebImage (3.8.2):
+    - SDWebImage/Core (= 3.8.2)
+  - SDWebImage/Core (3.8.2)
+
+DEPENDENCIES:
+  - CYLTableViewPlaceHolder
+  - IQKeyboardManager (~> 4.0.7)
+  - JSONModel (~> 1.7.0)
+  - MSWeakTimer (~> 1.1.0)
+  - ObjectiveSugar (~> 1.1.0)
+  - SDCycleScrollView (~> 1.61)
+  - SDWebImage (~> 3.7)
+
+SPEC CHECKSUMS:
+  CYLTableViewPlaceHolder: 44075c119aab78bbc514c75d771d6565e19938e8
+  IQKeyboardManager: 69002bb4fea60596b710e57d426abc00e5063630
+  JSONModel: 840bc0fcffb24b8454d2c026bf26fea454b8e98d
+  MSWeakTimer: 9426150f933b80ed3acf3f6d228e4b61f0e303c8
+  ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
+  SDCycleScrollView: f72904c77698a7f93a41bcbbc2d78b073bf7326c
+  SDWebImage: 098e97e6176540799c27e804c96653ee0833d13c
+
+PODFILE CHECKSUM: f5e7e3f267988016edfd24a782c5af613955fa3d
+
+COCOAPODS: 1.1.1

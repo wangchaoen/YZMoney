@@ -1,0 +1,51 @@
+//
+//  YZSoldOutCell.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/13.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZSoldOutCell.h"
+
+@implementation YZSoldOutCell
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    // Initialization code
+}
+
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
+    [super setSelected:selected animated:animated];
+
+    // Configure the view for the selected state
+}
+- (void)sendThingsWithModel:(YZSearchProductModel *)product {
+    NSMutableParagraphStyle *paragrahStyle = [[NSMutableParagraphStyle alloc] init];
+    [paragrahStyle setLineBreakMode:NSLineBreakByTruncatingTail];
+    NSMutableAttributedString *title = [[NSMutableAttributedString alloc]
+                                        initWithData:[product.title dataUsingEncoding:NSUnicodeStringEncoding]
+                                        options:@{NSDocumentTypeDocumentAttribute : NSHTMLTextDocumentType}
+                                        documentAttributes:nil
+                                        error:nil];
+    [title addAttribute:NSFontAttributeName value:[UIFont boldSystemFontOfSize:14.0f] range:NSMakeRange(0, title.length)];
+    
+    [title addAttribute:NSParagraphStyleAttributeName value:paragrahStyle range:NSMakeRange(0, title.length)];
+    
+    [(UILabel *)[self viewWithTag:1] setAttributedText:title];
+    [(UILabel *)[self viewWithTag:5] setText:product.docType];
+    [(UILabel *)[self viewWithTag:4] setText:[YZHelper dateStringFromTimestamp:product.updateTime]];
+    [(UILabel *)[self viewWithTag:6] setText:product.saleStatus[@"text"]];
+    [(UILabel *)[self viewWithTag:6] setTextColor:([product.saleStatus[@"value"] integerValue]==3)?RGBColor(191.0f, 193.0f, 194.0f, 1.0f):RGBColor(235.0f, 18.0f, 18.0f, 1.0f)];
+    
+    [(UILabel *)[self viewWithTag:101] setText:@""];
+    [(UILabel *)[self viewWithTag:102] setText:@""];
+    if (product.attrview) {
+        for (NSInteger i=0; i<(product.attrview.count<=2?product.attrview.count:2); i++) {
+            [(UILabel *)[self viewWithTag:i+101] setText:[NSString stringWithFormat:@"%@:%@",[product.attrview[i] valueForKey:@"text"],[product.attrview[i] valueForKey:@"valueText"]]];
+        }
+    }
+
+}
+
+@end

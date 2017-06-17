@@ -1,0 +1,73 @@
+//
+//  ScreenTitlwView.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/3/13.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "ScreenTitleView.h"
+#import "ProductNameModel.h"
+
+@interface ScreenTitleView ()
+@property (nonatomic, strong) UIImage *imageSelected;
+@end
+
+@implementation ScreenTitleView
+- (NSMutableArray *)titleArr {
+    if (!_titleArr) {
+        _titleArr = [NSMutableArray array];
+    }
+    return _titleArr;
+}
+- (void)creatProductBut:(NSArray *)array {
+    float gap = 6.0f;
+    float height = 30.0f;
+    UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(gap, 10.0f, CGRectGetWidth(self.frame)-gap*2, 30.0f)];
+    l.text = @"产品分类";
+    [self addSubview:l];
+    
+    self.titleArr = [NSMutableArray arrayWithArray:array];
+    float width = (CGRectGetWidth(self.frame)-5*gap)/4;
+    for (int i = 0 ; i < array.count; i++) {
+        ProductNameModel *model = array[i];
+        UIButton *b = [[UIButton alloc] initWithFrame:CGRectMake(gap*(i%4+1)+width*(i%4), 40.0f+gap*(i/4+1)+height*(i/4), width, height)];
+        [b.titleLabel setFont:[UIFont systemFontOfSize:12.0f]];
+        [b setTitleColor:RGBColor(59.0f, 59.0f, 59.0f, 1.0f) forState:UIControlStateNormal];
+        [b setTitleColor:[UIColor whiteColor] forState:UIControlStateSelected];
+        [b setBackgroundImage:self.imageSelected forState:UIControlStateSelected];
+        b.layer.cornerRadius = 4;
+        b.layer.masksToBounds = true;
+        b.layer.borderWidth = 0.5;
+        b.layer.borderColor = [UIColor blackColor].CGColor;
+        [b addTarget:self action:@selector(action:) forControlEvents:UIControlEventTouchUpInside];
+        b.tag = i;
+        [b setTitle:model.value forState:UIControlStateNormal];
+        if (i == 0) {
+            b.selected = true;
+        }
+        [self addSubview:b];
+    }
+}
+- (UIImage *)imageSelected {
+    if (!_imageSelected) {
+        _imageSelected = [YZHelper createImageWithColor:YZ_RED_COLOR];
+    }
+    return _imageSelected;
+}
+- (void)action:(UIButton *)but {
+    if (but.isSelected == YES) {
+        return;
+    }
+    for (UIView *view in self.subviews) {
+        if ([view isKindOfClass:[UIButton class]]) {
+            UIButton *button = (UIButton *)view;
+                button.selected = NO;
+        }
+    }
+    but.selected = YES;
+    if (self.delegate && [self.delegate respondsToSelector:@selector(productButAction: index:)]) {
+        [self.delegate productButAction:self.titleArr[but.tag] index:but.tag];
+    }
+}
+@end

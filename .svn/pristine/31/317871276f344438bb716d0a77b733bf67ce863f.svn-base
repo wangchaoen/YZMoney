@@ -1,0 +1,96 @@
+//
+//  PrefixHeader.pch
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/5.
+//  Copyright © 2015年 yzmoney. All rights  reserved.
+//
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+
+
+
+
+#import "AppDelegate.h"
+#import "YZHttpApiManager.h"
+#import "UIImageView+AFNetworking.h"
+#import "YZHelper.h"
+#import "MJRefresh.h"
+#import "YZCacheHelper.h"
+#import "UMSocial.h"
+#import "YZViewManager.h"
+#import "YZToastView.h"
+#import "UIButton+Inspectable.h"
+#import <UMMobClick/MobClick.h>
+
+
+
+#ifdef __OBJC__
+#include "YZMoney-header.h"
+#endif
+
+
+#ifdef DEBUG
+static NSString *url_base = @"http://192.168.0.11:8080/yz_app_server/";
+//static NSString *url_base = @"http://192.168.0.39:8080/yz_app_server/";
+//static NSString *url_base = @"http://192.168.0.32:18080/yz_cf/";
+//900312
+#else
+#undef NSLog
+#define NSLog(args, ...)
+static NSString *url_base = @"https://c.yzmoney.com/";
+#endif
+
+static NSString *url_res  = @"https://www.yzmoney.com/res";
+static NSString *url_h5   = @"https://m.yzmoney.com/";
+
+
+//友盟账号
+#define UMengKey @"58452b02f5ade4722400050e"
+// 微信
+#define WChatKey @"wxde2f3e6dcbc44caf"
+#define WChatAppSecret @"c2f8c8d8ff7f51e0c0c498b3c0efadb9"
+
+#define WChatKey2 @"wxc6f05f3e03719187"
+#define WChatAppSecret2 @"fe0c649d8bb9731e49cd94ab231663bd"
+
+// GrowingIOKey
+#define GrowingIOKey @"8ffeb4d7593587d3"
+// 显示启动页 1显示 0不显示
+#define ShowStartView @0
+
+#define KVresion @"kVresion"
+
+#define kUserFirstEnter   @"kUserFirstEnter"
+#define kUserOnline       @"kUserOnline"
+#define kUserShouldGet    @"kUserShouldGet"
+#define kUserHasGet       @"kUserHasGet"
+#define kUserShouldRemove @"kUserShouldRemove"
+#define kUserHasRemove    @"kUserHasRemove"
+
+
+
+#define MidFont [UIFont systemFontOfSize:14]
+#define BigFont [UIFont systemFontOfSize:16]
+
+#define APPDELEGATE ((AppDelegate *)[[UIApplication sharedApplication] delegate])
+#define yz_user [DataManager sharedManager].user
+
+// rgb
+#define RGBColor(r,g,b,a) [UIColor colorWithRed:(r)/255.0f green:(g)/255.0f blue:(b)/255.0f alpha:(a)]
+//十六进制方式设置rgb
+#define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
+
+#define YZ_RED_COLOR RGBColor(240, 76, 70, 1)
+#define YZ_BLUE_COLOR RGBColor(63, 70, 85, 1)
+#define YZ_GRAY_COLOR RGBColor(232, 232, 232, 1)
+
+#define WEAK_SELF __weak typeof(self) weakSelf = self
+#define ISLOGIN [Utility islogin]
+
+#endif /* PrefixHeader_pch */

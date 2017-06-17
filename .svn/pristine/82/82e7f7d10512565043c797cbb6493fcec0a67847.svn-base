@@ -1,0 +1,217 @@
+//
+//  YZEditorAddressVC.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/26.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZEditorAddressVC.h"
+#import <AddressBook/AddressBook.h>
+#import <AddressBookUI/AddressBookUI.h>
+#import "YZEdTitleCell.h"
+#import "YZEdCityCell.h"
+#import "YZEdDetailCell.h"
+#import "YZCityView.h"
+#import "YZAddressModel.h"
+
+@interface YZEditorAddressVC ()<ABPeoplePickerNavigationControllerDelegate, UITableViewDelegate, UITableViewDataSource, YZEdTitleCellDelegate, YZCityViewDelegate>
+@property (nonatomic, strong) UITableView *tableView;
+
+@property (nonatomic, strong) UISwitch *defaultSW;
+@property (nonatomic, strong) UITextField *nameTF;
+@property (nonatomic, strong) UITextField *numberTF;
+@property (nonatomic, strong) UILabel *addressLbl;
+@property (nonatomic, strong) UITextField *detailTF;
+@property (nonatomic, strong) YZCityView *cityView;
+@end
+
+@implementation YZEditorAddressVC
+
+- (void)dealloc
+{
+    [self.cityView removeFromSuperview];
+    self.cityView = nil;
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    if (self.comeType == YZEditorAddressComeTypeEditor) {
+        self.navigationItem.title = @"编辑";
+//        UIBarButtonItem *barBut = [[UIBarButtonItem alloc]initWithTitle:@"删除" style:UIBarButtonItemStylePlain target:nil action:nil];
+//        self.navigationItem.rightBarButtonItem = barBut;
+    }else{
+        self.navigationItem.title = @"新建";
+    }
+    YZCityView *view = [[YZCityView alloc]initWithFrame:CGRectMake(0, 0, S_W, S_H)];
+    view.delegate = self;
+    [APPDELEGATE.window addSubview:view];
+    self.cityView = view;
+    self.cityView.hidden = YES;
+    
+    [self.view setBackgroundColor:YZ_GRAY_COLOR];
+    [self.view addSubview:self.tableView];
+    UIButton *but = [UIButton buttonWithType:UIButtonTypeCustom];
+    but.frame = CGRectMake(30, S_H - 50, S_W - 60, 40);
+    [but setTitle:@"保存并使用" forState:UIControlStateNormal];
+    [but addTarget:self action:@selector(saveAndUseAction) forControlEvents:UIControlEventTouchUpInside];
+    but.layer.cornerRadius = 4;
+    but.layer.masksToBounds = YES;
+    [but setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    but.backgroundColor = YZ_RED_COLOR;
+    but.titleLabel.font = MidFont;
+    [self.view addSubview:but];
+}
+
+- (UITableView *)tableView {
+    if (!_tableView) {
+        _tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 10, S_W, S_H - 10)];
+        _tableView.backgroundColor = YZ_GRAY_COLOR;
+        _tableView.tableFooterView = [UIView new];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        _tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+        [_tableView registerClass:[YZEdTitleCell class] forCellReuseIdentifier:NSStringFromClass([YZEdTitleCell class])];
+         [_tableView registerClass:[YZEdCityCell class] forCellReuseIdentifier:NSStringFromClass([YZEdCityCell class])];
+        [_tableView registerClass:[YZEdDetailCell class] forCellReuseIdentifier:NSStringFromClass([YZEdDetailCell class])];
+        [_tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:NSStringFromClass([UITableViewCell class])];
+    }
+    return _tableView;
+}
+#pragma mark - tableViewDelegate
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 4;
+}
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.row == 0) {
+        YZEdTitleCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([YZEdTitleCell class])];
+        cell.delegate = self;
+        if (!self.nameTF) {
+            self.nameTF = cell.nameTF;
+        }
+        if (!self.numberTF) {
+            self.numberTF = cell.numberTF;
+        }
+        if (self.comeType == YZEditorAddressComeTypeEditor) {
+            self.nameTF.text = self.model.receiveName;
+            self.numberTF.text = self.model.receivePhone[@"value"];
+        }
+        return cell;
+    }else if (indexPath.row == 1){
+        YZEdCityCell * cell = [tableView dequeueReusableCellWithIdentifier: NSStringFromClass([YZEdCityCell class])];
+        if (!self.addressLbl) {
+            self.addressLbl = cell.cityLbl;
+        }
+        if (self.comeType == YZEditorAddressComeTypeEditor) {
+            self.addressLbl.text = self.model.area;
+        }
+
+        return cell;
+    }else if(indexPath.row == 2) {
+        YZEdDetailCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([YZEdDetailCell class])];
+        if (!self.detailTF) {
+            self.detailTF = cell.textField;
+        }
+        if (self.comeType == YZEditorAddressComeTypeEditor) {
+            self.detailTF.text = self.model.receiveAddress;
+        }
+
+        return cell;
+    }else{
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:NSStringFromClass([UITableViewCell class])];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        for (UIView *view in cell.contentView.subviews) {
+            if([view isKindOfClass:[UILabel class]]) {
+                [view removeFromSuperview];
+                break;
+            }
+        }
+        UILabel *lbl = [[UILabel alloc]initWithFrame:CGRectMake(5, 0, S_W / 2, 50)];
+        lbl.text = @"设为默认地址";
+        lbl.font = MidFont;
+        [cell.contentView addSubview:lbl];
+        if (!self.defaultSW) {
+            self.defaultSW = [[UISwitch alloc]initWithFrame:CGRectMake(S_W - 70, 10, 10, 10)];
+            self.defaultSW.onTintColor = YZ_RED_COLOR;
+            self.defaultSW.transform = CGAffineTransformMakeScale(0.7, 0.7);
+            
+            [cell.contentView addSubview:self.defaultSW];
+        }
+        if (self.comeType == YZEditorAddressComeTypeEditor) {
+            self.defaultSW.on = self.model.isDefault;
+        }
+        
+        return cell;
+    }
+}
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.row == 0) {
+        return 101;
+    }else {
+        return 50;
+    }
+}
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.row == 1) {
+        [self.nameTF resignFirstResponder];
+        [self.numberTF resignFirstResponder];
+        [self.detailTF resignFirstResponder];
+        self.cityView.hidden = NO;
+    }
+}
+#pragma mark - customDelegate
+- (void)addContactClick {
+    ABPeoplePickerNavigationController *peoplePickController = [[ABPeoplePickerNavigationController alloc] init];
+    peoplePickController.peoplePickerDelegate = self;
+    [self presentViewController:peoplePickController animated:YES completion:nil];
+}
+- (void)chooseCityNameWith:(NSString *)address view:(YZCityView *)view {
+    self.addressLbl.text = address;
+    view.hidden = YES;
+}
+#pragma mark - ABPeoplePickerNavigationControllerDelegate
+- (void)peoplePickerNavigationController:(ABPeoplePickerNavigationController *)peoplePicker didSelectPerson:(ABRecordRef)person property:(ABPropertyID)property identifier:(ABMultiValueIdentifier)identifier {
+    
+    ABMultiValueRef phone = ABRecordCopyValue(person, kABPersonPhoneProperty);
+    CFStringRef na = ABRecordCopyCompositeName(person);
+
+    long index = ABMultiValueGetIndexForIdentifier(phone,identifier);
+    
+    NSString *phoneNO = (__bridge NSString *)ABMultiValueCopyValueAtIndex(phone, index);
+    NSString *name = (__bridge NSString *)(na);
+
+    phoneNO = [phoneNO stringByReplacingOccurrencesOfString:@"-" withString:@""];
+    self.nameTF.text = name;
+    self.numberTF.text = phoneNO;
+        [peoplePicker dismissViewControllerAnimated:YES completion:nil];
+
+}
+#pragma mark - action
+- (void)saveAndUseAction {
+    if (self.nameTF.text.length <= 0 || self.numberTF.text.length <= 0 || self.detailTF.text.length <= 0 || self.addressLbl.text.length <= 0) {
+        [YZToastView showToastWithText:@"您的信息没有填写完全"];
+        return;
+    }
+    if (self.comeType == YZEditorAddressComeTypeEditor) {
+        [YZHttpApiManager apiMineContractEditorAddressWithParameters:@{@"receiveName": self.nameTF.text, @"receivePhone": self.numberTF.text, @"area": self.addressLbl.text, @"receiveAddress": self.detailTF.text, @"isDefault": self.defaultSW.isOn ? @1 : @0, @"addressId": self.model.ID} completionHandler:^(id response, NSError *error) {
+            if ([response[@"code"] integerValue] == 100) {
+                return;
+            }
+            YZAddressModel *model = [[YZAddressModel alloc]init];
+            [model modelFromJson:response[@"data"]];
+            [[NSNotificationCenter defaultCenter]postNotificationName:NOT_USEADDRESS_APPLY object:nil userInfo:@{@"addressModel": model}];
+            [self.navigationController popToViewController:self.navigationController.viewControllers[2] animated:YES];
+        }];
+        return;
+    }
+    [YZHttpApiManager apiMineContractAddAddressWithParameters:@{@"receiveName": self.nameTF.text, @"receivePhone": self.numberTF.text, @"area": self.addressLbl.text, @"receiveAddress": self.detailTF.text, @"isDefault": self.defaultSW.isOn ? @1 : @0} completionHandler:^(id response, NSError *error) {
+        if ([response[@"code"] integerValue] == 100) {
+            return;
+        }
+        YZAddressModel *model = [[YZAddressModel alloc]init];
+        [model modelFromJson:response[@"data"]];
+        [[NSNotificationCenter defaultCenter]postNotificationName:NOT_USEADDRESS_APPLY object:nil userInfo:@{@"addressModel": model}];
+        [self.navigationController popToViewController:self.navigationController.viewControllers[2] animated:YES];
+    }];
+    
+}
+@end

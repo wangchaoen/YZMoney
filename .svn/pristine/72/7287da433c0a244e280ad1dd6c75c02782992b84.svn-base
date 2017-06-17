@@ -1,0 +1,86 @@
+//
+//  YZMineStateCell.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/6.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZMineStateCell.h"
+#import "YZMineBut.h"
+
+@interface YZMineStateCell ()
+@property (nonatomic, strong) NSMutableArray *loginLblArr;
+@end
+
+@implementation YZMineStateCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
+        [self.contentView addSubview:self.backView];
+    }
+    return self;
+}
+- (UIView *)backView {
+    if (!_backView) {
+        _backView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, S_W, 140)];
+        _backView.backgroundColor = [UIColor whiteColor];
+        _backView.userInteractionEnabled = YES;
+    }
+    return _backView;
+}
+- (void)createViewWithArray:(NSArray *)array number:(NSArray *)numberArray{
+    self.backView.frame = CGRectMake(0, 0, S_W, ISLOGIN ? 140 : 70);
+    for (UIView *view in self.backView.subviews) {
+        [view removeFromSuperview];
+    }
+    NSInteger count = array.count;
+    NSInteger rowForNumber = 4;
+    NSInteger rows = (count - 1) / 4 + 1;
+    CGFloat width = S_W / rowForNumber;
+    CGFloat height = 70;
+    CGFloat interval = 10;
+    for (int i = 0; i < count; i++) {
+        YZMineBut *but = [YZMineBut buttonWithType:UIButtonTypeCustom];
+        but.frame = CGRectMake(i % rowForNumber * (S_W / rowForNumber), i / rowForNumber * height, width, height);
+        [self.backView addSubview:but];
+        [but createView];
+        but.tag = i;
+        but.lbl.text = array[i];
+        [but addTarget:self action:@selector(butAction:) forControlEvents:UIControlEventTouchUpInside];
+        
+        if (i < (ISLOGIN ? 4 : 0)) {
+            [but loginWithArray:numberArray index:i];
+        }
+        if ([but.lbl.text isEqualToString:@"我的客户"]) {
+            but.titleImage.image = [UIImage imageNamed:@"client.png"];
+        }else if ([but.lbl.text isEqualToString:@"我的收藏"]){
+            but.titleImage.image = [UIImage imageNamed:@"collection"];
+        }else if ([but.lbl.text isEqualToString:@"合同申请"]) {
+            but.titleImage.image = [UIImage imageNamed:@"contract_icon"];
+        }else {
+//
+            but.titleImage.image = [UIImage imageNamed:@"personquestion_icon2"];
+
+        }
+    }
+    for (int i = 0; i < rowForNumber - 1; i++) {
+        UIView *lineView = [[UIView alloc]initWithFrame:CGRectMake(width * (i + 1), interval, 1, height * rows - interval * 2)];
+        lineView.backgroundColor = YZ_GRAY_COLOR;
+        [self.backView addSubview:lineView];
+    }
+    for (int i = 0; i < rows - 1; i++) {
+        UIView *lineView = [[UIView alloc]initWithFrame:CGRectMake(interval, height * (i + 1), S_W, 1)];
+        lineView.backgroundColor = YZ_GRAY_COLOR;
+        [self.backView addSubview:lineView];
+    }
+}
+- (void)butAction:(UIButton *)but {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(touchButActionWithCell:button:)]) {
+        [self.delegate touchButActionWithCell:self button:but];
+    }
+}
+
+@end

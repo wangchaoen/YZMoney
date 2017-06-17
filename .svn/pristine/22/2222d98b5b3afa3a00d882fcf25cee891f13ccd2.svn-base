@@ -1,0 +1,627 @@
+//
+//  YZHttpApiManager.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/5.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZHttpApiManager.h"
+
+
+
+
+
+@implementation YZHttpApiManager
+#pragma mark - APPDelegate
++ (void)apiWChatIDWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler{
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                       url:@"findAppId"
+                                parameters:parameters
+                         completionHandler:^(id response, NSError *error) {
+                             completionHandler(response, error);
+                         }];
+}
+#pragma mark - user
+
++ (void)apiUserWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"GET"
+                                url:@"member/info"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiUserEditWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/info/submit"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+
+#pragma mark - register & login & logout & password
+
++ (void)apiCodeWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"code/register"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiCodeCenterWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"code/center"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiCodePasswordWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"code/password"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiRegisterWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"passport/doRegister"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiLoginWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"passport/doLogin"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiLogoutWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"passport/ajaxLogout"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiDoPasswordWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"passport/doPassword"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiUpPasswordWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/pwd/submit"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiCheckCodeWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"GET"
+                                url:@"checkcode"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+
+#pragma mark - index
+
++ (void)apiIndexWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"GET"
+                                url:@"index"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiHotProductWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"hotProduct"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+
+#pragma mark - product
+
++ (void)apiProductCategoryWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"producttablist"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiProductListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"GET" url:@"productJson" parameters:parameters completionHandler:^(id response, NSError *error) {
+        completionHandler(response, error);
+    }];
+//    [YZHttpClient requestWithMethod:@"GET"
+//                                url:@"productJson"
+//                         parameters:parameters
+//                  completionHandler:^(id response, NSError *error) {
+//                             completionHandler(response, error);
+//                         }];
+}
+
++ (void)apiProductConditionWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"condition"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiProductWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"product/detail"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiProductProfitWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/order/ajaxExpectedIncome"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiProductAppointWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/order/bookingSubmit"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiProductEmailWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"ajaxEmail"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiProductIsFavoriteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"product/asyncLoad"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiProductFavoriteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"product/ajaxFavorite"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiProductDocumentWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"product/fileList"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+
+#pragma mark - news
+
++ (void)apiNewsCategoryWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"article/articletablist"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiNewsListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                url:@"article/listJson"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiNewsDetailWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"article/detail"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+
+#pragma mark - search
++ (void)apiSearchCategoryHotAndLabelWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                url:@"hotTagList"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
++ (void)apiSearchCategorySearchCompanyWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                url:@"search/company"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
++ (void)apiSearchCategorySearchLabelWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                       url:@"v2/search/tag"
+                                parameters:parameters
+                         completionHandler:^(id response, NSError *error) {
+                             completionHandler(response, error);
+                         }];
+}
+
++ (void)apiSearchCategoryWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"loadSearchType"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiSearchListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"POST" url:@"v2/searchSubmit" parameters:parameters completionHandler:^(id response, NSError *error) {
+        completionHandler(response, error);
+    }];
+//    [YZHttpClient requestWithMethod:@"POST"
+//                                url:@"searchSubmit"
+//                         parameters:parameters
+//                  completionHandler:^(id response, NSError *error) {
+//                      completionHandler(response, error);
+//                  }];
+}
+
+//联想词
++ (void)apiSearchLenovoWordWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                url:@"product/search"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+#pragma mark - client
+
++ (void)apiClientDetailWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"member/customer/detail"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiClientListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/customer"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiClientSubmitWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/customer/submit"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiClientDeleteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/customer/delete"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiClientSearchWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/customer/json"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+
+#pragma mark - mine
++ (void)apiMineUserFeedBackWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler{
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                       url:@"myCenter/suggest"
+                                parameters:parameters
+                         completionHandler:^(id response, NSError *error) {
+                             completionHandler(response, error);
+                         }];
+}
++ (void)apiMineGetUserStatusWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                url:@"member/order/centerCount"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
++ (void)apiMineAppointListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"member/order"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiMineAppointDetailWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/order/detail"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiMineAppointPictureWithParameters:(id)parameters data:(id)data completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithData:data
+                              url:@"member/order/orderSave"
+                       parameters:parameters
+                completionHandler:^(id response, NSError *error) {
+                    completionHandler(response, error);
+                }];
+}
+
++ (void)apiMineAppointSearchWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                url:@"member/order/more"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiMineAppointConditionWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"member/order/condition"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
++ (void)apiMineAppointImageDeleteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/order/orderdeletepic"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+
++ (void)apiMineFavoriteWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"member/favorite"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiMineSurveyWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"myCenter/findMenu"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiMineServiceWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"callservice"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiMineServiceSubmitWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"callservice/submitToCallService"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+//合同提交
++ (void)apiMineSubmitContractWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"compact/applyCompact"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+// 合同地址列表
++ (void)apiMineContractAddressListWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"compact/address/list"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+    //删除地址
++ (void)apiMineContractAddressRemoveWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+        [YZHttpClient requestWithMethod:@"POST"
+                                    url:@"compact/address/delete"
+                             parameters:parameters
+                      completionHandler:^(id response, NSError *error) {
+                          completionHandler(response, error);
+                      }];
+}
+//获取默认地址
++ (void)apiMineContractGetDefaultAddressWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"compact/address/default"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+//新建地址
++ (void)apiMineContractAddAddressWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"compact/address/save"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+//编辑地址
++ (void)apiMineContractEditorAddressWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"compact/address/update"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+//查看进度
++ (void)apiMineContractLookProgressWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"compact/apply/progress"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+//提交认证
++ (void)apiMineSubmitCertificationWithParameters:(id)parameters data:(id)data completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithData:data url:@"myCenter/verifyMember" parameters:parameters completionHandler:^(id response, NSError *error) {
+        completionHandler(response, error);
+    }];
+}
+
+
+#pragma mark - order
+
++ (void)apiOrderCancelBookingWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/order/ajaxCancelBooking"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiOrderCancelOrderWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/order/ajaxCancelOrder"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiOrderDeleteBookingWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/order/deleteBooking"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiOrderOrderSubmitWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"POST"
+                                url:@"member/order/orderSubmit"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+
+#pragma mark - other
+
++ (void)apiConfigureWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"POST"
+                                url:@"edition/checkupdate"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiBootadWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithNoToastMethod:@"GET"
+                                url:@"bootad"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
++ (void)apiSurveyWithParameters:(id)parameters completionHandler:(void (^)(id response, NSError *error))completionHandler {
+    [YZHttpClient requestWithMethod:@"GET"
+                                url:@"questionnaire/check"
+                         parameters:parameters
+                  completionHandler:^(id response, NSError *error) {
+                      completionHandler(response, error);
+                  }];
+}
+
+@end

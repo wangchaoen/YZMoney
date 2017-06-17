@@ -1,0 +1,213 @@
+//
+//  YZMineAppointConditionView.m
+//  YZMoney
+//
+//  Created by 7仔 on 16/1/22.
+//  Copyright © 2016年 yzmoney. All rights reserved.
+//
+
+#import "YZMineAppointConditionView.h"
+
+
+
+
+
+@interface YZMineAppointConditionView () <UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate>
+
+@property (nonatomic, strong) NSDictionary *dicData;
+@property (nonatomic, strong) NSDictionary *dicSelection;
+@property (nonatomic, strong) UIImage *imageNormal;
+@property (nonatomic, strong) UIImage *imageSelected;
+
+@end
+
+
+
+
+
+const float gap1 = 10.0f;
+const float height1 = 30.0f;
+
+
+
+
+
+@implementation YZMineAppointConditionView
+
+- (id)initWithFrame:(CGRect)frame {
+    self = [super initWithFrame:frame];
+    if (self) {
+        self = [[[NSBundle mainBundle] loadNibNamed:@"YZMineAppointConditionView" owner:nil options:nil] firstObject];
+        self.frame = frame;
+        
+        [YZHttpApiManager apiMineAppointConditionWithParameters:nil
+                                              completionHandler:^(id response, NSError *error) {
+                                                  _dicData = [response valueForKeyPath:@"data"];
+                                                  [(UITableView *)[self viewWithTag:1] reloadData];
+                                              }];
+    }
+    return self;
+}
+
+- (UIImage *)imageNormal {
+    if (!_imageNormal) {
+        _imageNormal = [YZHelper roundCornerImageWithSize:CGSizeMake((CGRectGetWidth(self.frame)-5*gap1)/4, height1) colorFill:[UIColor clearColor]];
+    }
+    return _imageNormal;
+}
+
+- (UIImage *)imageSelected {
+    if (!_imageSelected) {
+//        _imageSelected = [YZHelper roundCornerImageWithSize:CGSizeMake((CGRectGetWidth(self.frame)-5*gap1)/4, height1) colorFill:RGBColor(255.0f, 56.0f, 0.0f, 1.0f)];
+        _imageSelected = [YZHelper createImageWithColor:YZ_RED_COLOR];
+    }
+    return _imageSelected;
+}
+
+
+#pragma mark - action
+
+- (IBAction)actionDone:(UIButton *)sender {
+        _conditionHandler(_dicSelection);
+    [self removeFromSuperview];
+}
+
+- (IBAction)actionHide:(UITapGestureRecognizer *)sender {
+//    [self removeFromSuperview];
+}
+
+- (void)actionOptionClicked:(UIButton *)sender {
+    sender.selected = !sender.selected;
+    if (sender.selected) {
+//        if (sender.tag >= 0) {
+            if ([sender.accessibilityIdentifier isEqualToString:@"booking"]) {
+                _dicSelection = @{@"bookingType": [[_dicData[@"bookingList"] objectAtIndex:sender.tag] valueForKey:@"strKey"]};
+            }else if ([sender.accessibilityIdentifier isEqualToString:@"order"]) {
+                _dicSelection = @{@"orderType": [[_dicData[@"orderList"] objectAtIndex:sender.tag] valueForKey:@"strKey"]};
+            }
+//        }
+//            else {
+//            _dicSelection = @{[sender.accessibilityIdentifier isEqualToString:@"booking"]?@"bookingType":@"orderType": @"all"};
+//        }
+        [(UITableView *)[self viewWithTag:1] reloadData];
+    }else {
+        _dicSelection = nil;
+    }
+}
+
+
+#pragma mark - table view
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 1;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 280.0f;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
+        
+    float width = (CGRectGetWidth(self.frame)-5*gap1)/4;
+    
+    UILabel *l1 = [[UILabel alloc] initWithFrame:CGRectMake(gap1, gap1, CGRectGetWidth(self.frame)-20.0f, 30.0f)];
+    l1.text = @"预约状态";
+    [cell.contentView addSubview:l1];
+    
+    NSMutableArray *arr1 = [_dicData[@"bookingList"] mutableCopy];
+//    [arr1 insertObject:@{@"value":@"全部"} atIndex:0];
+    for (NSInteger i=0; i<arr1.count; i++) {
+        UIButton *b = [[UIButton alloc] initWithFrame:CGRectMake(gap1*(i%4+1)+width*(i%4), height1+gap1*(i/4+1)+height1*(i/4), width, height1)];
+        [b.titleLabel setFont:[UIFont systemFontOfSize:12.0f]];
+        [b setTitle:[arr1[i] valueForKey:@"value"] forState:UIControlStateNormal];
+        [b setTitleColor:RGBColor(59.0f, 59.0f, 59.0f, 1.0f) forState:UIControlStateNormal];
+        [b setTitleColor:[UIColor whiteColor] forState:UIControlStateSelected];
+//        [b setBackgroundImage:self.imageNormal forState:UIControlStateNormal];
+        b.layer.cornerRadius = 4;
+        b.layer.masksToBounds = true;
+        b.layer.borderWidth = 0.5;
+        b.layer.borderColor = [UIColor blackColor].CGColor;
+        [b setBackgroundImage:self.imageSelected forState:UIControlStateSelected];
+        [b addTarget:self action:@selector(actionOptionClicked:) forControlEvents:UIControlEventTouchUpInside];
+        b.accessibilityIdentifier = @"booking";
+        b.tag = i;
+        
+//        if (i == 0) {
+//            if ([_dicSelection.allKeys.firstObject isEqualToString:@"bookingType"] &&
+//                [_dicSelection.allValues.firstObject isEqualToString:@"all"]) {
+//                b.selected = YES;
+//            }
+//            else {
+//                b.selected = NO;
+//            }
+//        }
+//        else {
+            if ([_dicSelection.allKeys.firstObject isEqualToString:@"bookingType"] &&
+                [_dicSelection.allValues.firstObject isEqualToString:[[_dicData[@"bookingList"] objectAtIndex:b.tag] valueForKey:@"strKey"]]) {
+                b.selected = YES;
+            }
+            else {
+                b.selected = NO;
+            }
+//        }
+        
+        [cell.contentView addSubview:b];
+    }
+    
+    UILabel *l2 = [[UILabel alloc] initWithFrame:CGRectMake(gap1, CGRectGetMaxY(cell.contentView.subviews.lastObject.frame)+20.0f,
+                                                            CGRectGetWidth(self.frame)-20.0f, height1)];
+    l2.text = @"报单状态";
+    [cell.contentView addSubview:l2];
+    
+    NSMutableArray *arr2 = [_dicData[@"orderList"] mutableCopy];
+//    [arr2 insertObject:@{@"value":@"全部"} atIndex:0];
+    for (NSInteger i=0; i<arr2.count; i++) {
+        UIButton *b = [[UIButton alloc] initWithFrame:CGRectMake(gap1*(i%4+1)+width*(i%4), CGRectGetMaxY(l2.frame)+gap1*(i/4+1)+height1*(i/4), width, height1)];
+        [b.titleLabel setFont:[UIFont systemFontOfSize:12.0f]];
+        [b setTitle:[arr2[i] valueForKey:@"value"] forState:UIControlStateNormal];
+        [b setTitleColor:RGBColor(59.0f, 59.0f, 59.0f, 1.0f) forState:UIControlStateNormal];
+        [b setTitleColor:[UIColor whiteColor] forState:UIControlStateSelected];
+//        [b setBackgroundImage:self.imageNormal forState:UIControlStateNormal];
+        b.layer.cornerRadius = 4;
+        b.layer.masksToBounds = true;
+        b.layer.borderWidth = 0.5;
+        b.layer.borderColor = [UIColor blackColor].CGColor;
+        [b setBackgroundImage:self.imageSelected forState:UIControlStateSelected];
+        [b addTarget:self action:@selector(actionOptionClicked:) forControlEvents:UIControlEventTouchUpInside];
+        b.accessibilityIdentifier = @"order";
+        b.tag = i;
+        
+//        if (i == 0) {
+//            if ([_dicSelection.allKeys.firstObject isEqualToString:@"orderType"] &&
+//                [_dicSelection.allValues.firstObject isEqualToString:@"all"]) {
+//                b.selected = YES;
+//            }
+//            else {
+//                b.selected = NO;
+//            }
+//        }
+//        else {
+            if ([_dicSelection.allKeys.firstObject isEqualToString:@"orderType"] &&
+                [_dicSelection.allValues.firstObject isEqualToString:[[_dicData[@"orderList"] objectAtIndex:b.tag] valueForKey:@"strKey"]]) {
+                b.selected = YES;
+            }
+            else {
+                b.selected = NO;
+            }
+//        }
+
+        [cell.contentView addSubview:b];
+    }
+    
+    return cell;
+}
+
+
+#pragma mark - delegate
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch {
+    return ![NSStringFromClass([touch.view class]) isEqualToString:@"UITableViewCellContentView"];
+}
+
+@end

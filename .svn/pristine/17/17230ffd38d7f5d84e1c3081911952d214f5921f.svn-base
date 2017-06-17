@@ -1,0 +1,22 @@
+//
+//  YZProgressCell.m
+//  YZMoney
+//
+//  Created by 王朝恩 on 2017/4/25.
+//  Copyright © 2017年 yzmoney. All rights reserved.
+//
+
+#import "YZProgressCell.h"
+
+@implementation YZProgressCell
+
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier{
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        
+    }
+    return self;
+}
+
+
+@end

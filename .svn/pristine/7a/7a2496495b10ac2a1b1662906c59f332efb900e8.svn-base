@@ -1,0 +1,208 @@
+//
+//  YZProductVC.m
+//  YZMoney
+//
+//  Created by 7仔 on 15/11/9.
+//  Copyright © 2015年 yzmoney. All rights reserved.
+//
+
+#import "YZProductVC.h"
+#import "YZProductSV.h"
+#import "YZProductFilterTV.m"
+#import "YZProductDetailVC.h"
+#import "YZSearchVC.h"
+#import "SreenController.h"
+#import "PopPresentAnimation.h"
+#import "PopDismissAnimation.h"
+#import "YZTitleScrollView.h"
+#import "ProductNameModel.h"
+
+
+
+@interface YZProductVC () <UISearchBarDelegate, UIScrollViewDelegate, UIViewControllerTransitioningDelegate, YZTitleScrollViewDelegate>
+
+@property (weak, nonatomic) IBOutlet YZTitleScrollView *svProCate;
+@property (weak, nonatomic) IBOutlet YZProductSV *svProList;
+@property (nonatomic, strong) NSMutableArray<ProductNameModel *> *arrProCate;
+
+@end
+
+
+
+
+
+@implementation YZProductVC
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [MobClick event:@"index_dock" label:@"/list"];
+//    [self.navigationController setNavigationBarHidden:YES animated:YES];
+    [UIApplication sharedApplication].statusBarStyle = UIStatusBarStyleLightContent;
+    self.navigationController.navigationBar.barStyle = UIBarStyleBlack;
+    self.navigationController.navigationBar.hidden = YES;
+
+}
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    self.navigationController.navigationBar.hidden = NO;
+}
+- (void)createSearchAndScreenAction {
+    UIView *backTitleView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, S_W, 60)];
+    backTitleView.backgroundColor = YZ_RED_COLOR;
+    backTitleView.userInteractionEnabled = YES;
+    [self.view addSubview:backTitleView];
+    
+    UIButton *search = [UIButton buttonWithType:UIButtonTypeCustom];
+    [search setTitle:@"搜索" forState:UIControlStateNormal];
+    [search setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    search.frame = CGRectMake(10,20 + 5, S_W - 130, 30);
+    search.titleLabel.font = [UIFont systemFontOfSize:14];
+    [search setTitleEdgeInsets:UIEdgeInsetsMake(5, 0, 5, 0)];
+    [search setImage:[UIImage imageNamed:@"search_icon"] forState:UIControlStateNormal];
+    [search setImageEdgeInsets:UIEdgeInsetsMake(5, 0, 5, 0)];
+    search.layer.cornerRadius = 2;
+    search.layer.masksToBounds = YES;
+    search.backgroundColor = [UIColor whiteColor];
+    [search addTarget:self action:@selector(searchAction) forControlEvents:UIControlEventTouchUpInside];
+    [backTitleView addSubview:search];
+    
+    
+    UIButton *but = [UIButton buttonWithType:UIButtonTypeCustom];
+    but.frame = CGRectMake(S_W - 110, 20 + 5, 100, 30);
+    [but setTitle:@"筛选" forState:UIControlStateNormal];
+    [but setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [but addTarget:self action:@selector(actionCondition) forControlEvents:UIControlEventTouchUpInside];
+
+    but.titleLabel.font = [UIFont systemFontOfSize:14];
+    [but setImage:[UIImage imageNamed:@"small_white_sreen"] forState:UIControlStateNormal];
+    [backTitleView addSubview:but];
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.arrProCate = [NSMutableArray array];
+    [self createSearchAndScreenAction];
+    self.svProCate.viewDelegate = self;
+//    UISearchBar *sb = [[UISearchBar alloc] init];
+//    sb.delegate = self;
+//    sb.placeholder = @"请输入搜索关键字";
+//    self.navigationItem.titleView = sb;
+    
+    WEAK_SELF;
+    [YZHttpApiManager apiProductCategoryWithParameters:nil
+                                     completionHandler:^(id response, NSError *error) {
+                                         if ([response[@"success"] boolValue]) {
+                                             NSDictionary *data = response[@"data"];
+                                             NSArray *tabViewList = data[@"tabViewList"];
+                                             for (NSDictionary *dic in tabViewList) {
+                                                 ProductNameModel *model = [[ProductNameModel alloc]initWithDict:dic];
+                                                 [weakSelf.arrProCate addObject:model];
+                                                 
+                                             }
+                                             [YZCacheHelper cacheObject:weakSelf.arrProCate file:@"product_category"];
+                                         }
+                                         else {
+                                             weakSelf.arrProCate = [YZCacheHelper objectCachedWithFile:@"product_category"];
+                                         }
+                                         
+                                         if (!weakSelf.arrProCate) {
+                                             return;
+                                         }
+                                         
+                                         [weakSelf.svProCate createViewWithArray:weakSelf.arrProCate];
+                                         
+                                         weakSelf.svProList.vc = weakSelf;
+                                         weakSelf.svProList.arrCategory = weakSelf.arrProCate;
+                                         [weakSelf.svProList setContentOffset:CGPointMake(weakSelf.indexEntry*CGRectGetWidth(weakSelf.svProList.frame), 0.0f) animated:YES];
+                                         weakSelf.svProList.backgroundViewAnimationBlock = ^void(float offset) {
+#pragma mark - 滑动回调
+                                             [weakSelf.svProCate slidingActionWith:offset scrollView:weakSelf.svProList];
+                                         };
+                                     }];
+}
+
+- (void)setIndexEntry:(NSInteger)indexEntry {
+    _indexEntry = indexEntry;
+    [_svProList setContentOffset:CGPointMake(_indexEntry*CGRectGetWidth(_svProList.frame), 0.0f) animated:YES];
+}
+
+#pragma mark - delegate
+
+- (id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented presentingController:(UIViewController *)presenting sourceController:(UIViewController *)source {
+    return [PopPresentAnimation new];
+}
+
+- (id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed {
+    return [PopDismissAnimation new];
+}
+
+- (BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar {
+//    [self performSegueWithIdentifier:@"segue_product_search" sender:nil];
+    YZSearchVC *vc = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"yz_search"];
+    vc.hidesBottomBarWhenPushed = true;
+    [self.navigationController pushViewController:vc animated:true];
+
+    [MobClick event:@"searchList"];
+    return NO;
+}
+
+
+#pragma mark - product category
+- (void)clickCategoryWithSenderDelegate:(UIButton *)but {
+    [_svProList setContentOffset:CGPointMake(CGRectGetWidth(_svProList.frame)*but.tag, 0.0f) animated:YES];
+    ProductNameModel *model = self.arrProCate[but.tag];
+    [MobClick event:@"sortList" label: model.name];
+}
+
+
+#pragma mark - action
+- (void)searchAction {
+    [MobClick event:@"list_search"];
+    YZSearchVC *vc = [[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"yz_search"];
+    vc.hidesBottomBarWhenPushed = true;
+    [self.navigationController pushViewController:vc animated:true];
+}
+- (void)actionCondition {
+    if (_arrProCate) {
+        NSMutableArray *arr = [NSMutableArray array];
+        for (ProductNameModel *model in _arrProCate) {
+            [arr addObject:model.code];
+        }
+        
+        NSString *type = arr[(int)(_svProList.contentOffset.x/CGRectGetWidth(_svProList.frame))];
+        WEAK_SELF;
+        [YZHttpApiManager apiProductConditionWithParameters:@{@"type" : type}
+                                              completionHandler:^(id response, NSError *error) {
+                                                SreenController * vc = [SreenController new];
+                                                  vc.modalPresentationStyle = UIModalPresentationCustom;
+                                                  vc.transitioningDelegate = self;
+                                                  
+                                                  [weakSelf presentViewController:vc animated:YES completion:nil];
+                                                  [vc showListType:type array:response[@"data"]];
+                                                  vc.pfv.filterDoneBlock = ^(NSDictionary *parameters) {
+                                                      
+                                                      if (parameters) {
+                                                          NSMutableDictionary *dicParam = [parameters mutableCopy];
+                                                          for (NSString *key in dicParam.allKeys) {
+                                                              NSString *strValue = [dicParam[key] componentsJoinedByString:@","];
+                                                              [dicParam setValue:strValue forKey:key];
+                                                          }
+                                                          [dicParam setValue:type forKey:@"columnUrl"];
+                                                          [dicParam setValue:@(1) forKey:@"pageNum"];
+                                                          [weakSelf.svProList loadListWithParameters:dicParam refresh:NO page:NO filter:YES];
+                                                      }
+                                                  };
+                                              }];
+    }
+}
+
+
+#pragma mark - segue
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"segue_product_detail"]) {
+        [(YZProductDetailVC *)segue.destinationViewController setIdProduct:[sender ID]];
+//        [(YZProductDetailVC *)segue.destinationViewController setTitle:[sender name]];
+    }
+}
+
+@end
